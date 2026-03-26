@@ -1,6 +1,7 @@
 import streamlit as st
 import json
 import time
+import pandas as pd
 
 # Load questions
 with open("questions.json", "r") as f:
@@ -88,13 +89,15 @@ with col1:
         if st.button("Next ➡"):
             if st.session_state.current_q < len(questions) - 1:
                 st.session_state.current_q += 1
-
-# Submit
+                # Submit
 if st.button("Submit Test") or st.session_state.submitted:
     st.session_state.submitted = True
 
+name = st.text_input("Enter your name")
+
 if st.session_state.submitted:
     st.subheader("📊 Results")
+    
     score = 0
 
     for i, q in enumerate(questions):
@@ -113,3 +116,26 @@ if st.session_state.submitted:
         st.write("---")
 
     st.write(f"## 🎯 Score: {score} / {len(questions)}")
+
+    # Save score
+    if name:
+        score_data = {"Name": name, "Score": score}
+        
+        try:
+            df = pd.read_csv("scores.csv")
+        except:
+            df = pd.DataFrame(columns=["Name", "Score"])
+        
+        df = pd.concat([df, pd.DataFrame([score_data])], ignore_index=True)
+        df.to_csv("scores.csv", index=False)
+
+st.markdown("---")
+
+if st.button("📊 Show Leaderboard"):
+    try:
+        df = pd.read_csv("scores.csv")
+        df = df.sort_values(by="Score", ascending=False)
+        st.subheader("🏆 Leaderboard")
+        st.dataframe(df)
+    except:
+        st.warning("No scores available yet")
