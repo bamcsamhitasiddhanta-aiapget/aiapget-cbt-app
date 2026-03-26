@@ -22,9 +22,6 @@ questions = filtered_questions
 
 selected_subject = st.selectbox("Select Subject", subjects)
 
-# Filter questions based on selected subject
-questions = [q for q in questions if q["subject"] == selected_subject]
-
 st.set_page_config(page_title="AIAPGET CBT", layout="wide")
 
 st.title("🧠 AIAPGET CBT Practice Test")
