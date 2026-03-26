@@ -5,6 +5,13 @@ import time
 # Load questions
 with open("questions.json", "r") as f:
     questions = json.load(f)
+    # Get unique subjects
+subjects = list(set(q["subject"] for q in questions))
+
+selected_subject = st.selectbox("Select Subject", subjects)
+
+# Filter questions based on selected subject
+questions = [q for q in questions if q["subject"] == selected_subject]
 
 st.set_page_config(page_title="AIAPGET CBT", layout="wide")
 
