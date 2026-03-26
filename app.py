@@ -20,7 +20,7 @@ else:
 
 questions = filtered_questions
 
-selected_subject = st.selectbox("Select Subject", subjects)
+selected_subject = st.selectbox("Select Subject", subjects, key="subject_select")
 
 st.set_page_config(page_title="AIAPGET CBT", layout="wide")
 
