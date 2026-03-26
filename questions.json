@@ -1,16 +1,142 @@
 [
   {
+    "subject": "Samhita Adhyayana 1",
+    "question": "Charaka Samhita belongs to?",
+    "options": ["Shalya", "Kayachikitsa", "Shalakya", "Kaumarabhritya"],
+    "answer": "Kayachikitsa",
+    "explanation": "Charaka Samhita mainly deals with Kayachikitsa."
+  },
+  {
+    "subject": "Padartha Vijnana",
+    "question": "Dravya means?",
+    "options": ["Substance", "Quality", "Action", "None"],
+    "answer": "Substance",
+    "explanation": "Dravya refers to substance."
+  },
+  {
+    "subject": "Rachana Sharira",
+    "question": "Number of bones in adult human body?",
+    "options": ["206", "210", "300", "180"],
+    "answer": "206",
+    "explanation": "Adult human body has 206 bones."
+  },
+  {
+    "subject": "Kriya Sharira",
+    "question": "Pitta is mainly responsible for?",
+    "options": ["Movement", "Digestion", "Structure", "Lubrication"],
+    "answer": "Digestion",
+    "explanation": "Pitta governs digestion and metabolism."
+  },
+  {
+    "subject": "Sanskrit",
+    "question": "Meaning of 'Vaidya'?",
+    "options": ["Doctor", "Teacher", "Student", "King"],
+    "answer": "Doctor",
+    "explanation": "Vaidya means physician."
+  },
+  {
+    "subject": "Dravyaguna",
+    "question": "Amalaki has which rasa?",
+    "options": ["Madhura", "Amla", "Tikta", "Katu"],
+    "answer": "Amla",
+    "explanation": "Amalaki is predominantly Amla rasa."
+  },
+  {
+    "subject": "Samhita Adhyayana 2",
+    "question": "Sushruta is known for?",
+    "options": ["Medicine", "Surgery", "Pediatrics", "Toxicology"],
+    "answer": "Surgery",
+    "explanation": "Sushruta is father of surgery."
+  },
+  {
+    "subject": "Rasashastra & Bhaishajya Kalpana",
+    "question": "Parada is?",
+    "options": ["Mercury", "Gold", "Iron", "Copper"],
+    "answer": "Mercury",
+    "explanation": "Parada refers to mercury."
+  },
+  {
+    "subject": "Agadatantra",
+    "question": "Agadatantra deals with?",
+    "options": ["Poison", "Surgery", "Pediatrics", "Diet"],
+    "answer": "Poison",
+    "explanation": "Agadatantra is toxicology."
+  },
+  {
+    "subject": "Roganidana",
+    "question": "Nidana means?",
+    "options": ["Diagnosis", "Treatment", "Diet", "Exercise"],
+    "answer": "Diagnosis",
+    "explanation": "Nidana refers to diagnosis."
+  },
+  {
+    "subject": "Swasthavritta",
+    "question": "Dinacharya refers to?",
+    "options": ["Daily routine", "Night routine", "Seasonal routine", "None"],
+    "answer": "Daily routine",
+    "explanation": "Dinacharya means daily regimen."
+  },
+  {
+    "subject": "Prasooti Tantra & Stree Roga",
+    "question": "Garbhini means?",
+    "options": ["Pregnant woman", "Child", "Doctor", "Nurse"],
+    "answer": "Pregnant woman",
+    "explanation": "Garbhini refers to pregnant woman."
+  },
+  {
+    "subject": "Kaumarabhritya",
+    "question": "Kaumarabhritya deals with?",
+    "options": ["Children", "Adults", "Elderly", "Women"],
+    "answer": "Children",
+    "explanation": "It is pediatrics."
+  },
+  {
     "subject": "Kayachikitsa",
-    "question": "Vata is mainly composed of?",
+    "question": "Vata is composed of?",
     "options": ["Agni", "Vayu + Akasha", "Jala", "Prithvi"],
     "answer": "Vayu + Akasha",
     "explanation": "Vata is formed by Vayu and Akasha."
   },
   {
-    "subject": "Samhita",
-    "question": "Charaka Samhita mainly deals with?",
-    "options": ["Surgery", "Medicine", "Toxicology", "Pediatrics"],
-    "answer": "Medicine",
-    "explanation": "Charaka focuses on Kayachikitsa."
+    "subject": "Samhita Adhyayana 3",
+    "question": "Ashtanga Hridaya written by?",
+    "options": ["Charaka", "Sushruta", "Vagbhata", "Kashyapa"],
+    "answer": "Vagbhata",
+    "explanation": "Vagbhata authored Ashtanga Hridaya."
+  },
+  {
+    "subject": "Shalya Tantra",
+    "question": "Shalya Tantra deals with?",
+    "options": ["Surgery", "Medicine", "Pediatrics", "Diet"],
+    "answer": "Surgery",
+    "explanation": "Shalya Tantra is surgical branch."
+  },
+  {
+    "subject": "Shalakya Tantra",
+    "question": "Shalakya deals with?",
+    "options": ["ENT & Eye", "Heart", "Bones", "Skin"],
+    "answer": "ENT & Eye",
+    "explanation": "It deals with Urdhwajatrugata rogas."
+  },
+  {
+    "subject": "Panchakarma",
+    "question": "Vamana is?",
+    "options": ["Emesis", "Purgation", "Enema", "Nasal therapy"],
+    "answer": "Emesis",
+    "explanation": "Vamana is therapeutic emesis."
+  },
+  {
+    "subject": "Research Methodology & Statistics",
+    "question": "Mean is?",
+    "options": ["Average", "Median", "Mode", "Range"],
+    "answer": "Average",
+    "explanation": "Mean is average."
+  },
+  {
+    "subject": "Modern Topics",
+    "question": "WHO stands for?",
+    "options": ["World Health Organization", "World Human Org", "Health World Org", "None"],
+    "answer": "World Health Organization",
+    "explanation": "WHO is global health body."
   }
 ]
