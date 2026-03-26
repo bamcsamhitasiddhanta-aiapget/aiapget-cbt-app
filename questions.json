@@ -1,14 +1,16 @@
 [
   {
+    "subject": "Kayachikitsa",
     "question": "Vata is mainly composed of?",
     "options": ["Agni", "Vayu + Akasha", "Jala", "Prithvi"],
     "answer": "Vayu + Akasha",
-    "explanation": "Vata is formed by Vayu and Akasha mahabhutas."
+    "explanation": "Vata is formed by Vayu and Akasha."
   },
   {
+    "subject": "Samhita",
     "question": "Charaka Samhita mainly deals with?",
     "options": ["Surgery", "Medicine", "Toxicology", "Pediatrics"],
     "answer": "Medicine",
-    "explanation": "Charaka Samhita focuses on Kayachikitsa."
+    "explanation": "Charaka focuses on Kayachikitsa."
   }
 ]
