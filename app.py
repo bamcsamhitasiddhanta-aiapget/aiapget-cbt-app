@@ -8,6 +8,17 @@ with open("questions.json", "r") as f:
     questions = json.load(f)
     # Get unique subjects
 subjects = list(set(q["subject"] for q in questions))
+subjects.append("Full Mock Test")
+
+selected_subject = st.selectbox("Select Subject", subjects)
+
+# Filter logic
+if selected_subject == "Full Mock Test":
+    filtered_questions = questions
+else:
+    filtered_questions = [q for q in questions if q["subject"] == selected_subject]
+
+questions = filtered_questions
 
 selected_subject = st.selectbox("Select Subject", subjects)
 
