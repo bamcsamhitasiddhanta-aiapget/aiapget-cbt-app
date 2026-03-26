@@ -2,15 +2,16 @@ import streamlit as st
 import json
 import time
 import pandas as pd
-
 # Load questions
 with open("questions.json", "r") as f:
     questions = json.load(f)
-    # Get unique subjects
+
+# Get unique subjects
 subjects = list(set(q["subject"] for q in questions))
 subjects.append("Full Mock Test")
 
-selected_subject = st.selectbox("Select Subject", subjects)
+# Single selectbox ONLY
+selected_subject = st.selectbox("Select Subject", subjects, key="subject_select")
 
 # Filter logic
 if selected_subject == "Full Mock Test":
@@ -20,12 +21,8 @@ else:
 
 questions = filtered_questions
 
-selected_subject = st.selectbox("Select Subject", subjects, key="subject_select")
-
 st.set_page_config(page_title="AIAPGET CBT", layout="wide")
-
 st.title("🧠 AIAPGET CBT Practice Test")
-
 # Session state
 if "start_time" not in st.session_state:
     st.session_state.start_time = None
