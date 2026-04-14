@@ -4,16 +4,10 @@ import time
 import pandas as pd
 st.markdown("""
 <style>
-.right-panel {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-}
-
-.right-panel button {
-    width: 45px;
-    height: 45px;
-    margin: 3px;
+section[data-testid="stSidebar"] button {
+    width: 100%;
+    padding: 4px;
+    font-size: 12px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -77,28 +71,25 @@ mins = remaining // 60
 secs = remaining % 60
 
 # Layout
-col1, col2 = st.columns([4, 2])
+col1 = st.container()
 
-with col2:
-    st.markdown('<div class="right-panel">', unsafe_allow_html=True)
+st.sidebar.markdown("## ⏳ Timer")
+st.sidebar.write(f"{mins}:{secs:02d}")
 
-    st.write(f"⏳ {mins}:{secs:02d}")
-    st.write("### Questions")
+st.sidebar.markdown("## Questions")
 
-    num_cols = 3
+num_cols = 4  # desktop grid
 
-    for i in range(0, len(questions), num_cols):
-        cols = st.columns(num_cols)
+for i in range(0, len(questions), num_cols):
+    cols = st.sidebar.columns(num_cols)
 
-        for j in range(num_cols):
-            if i + j < len(questions):
-                q_index = i + j
+    for j in range(num_cols):
+        if i + j < len(questions):
+            q_index = i + j
 
-                if cols[j].button(str(q_index+1), key=f"nav{q_index}"):
-                    st.session_state.current_q = q_index
-                    st.rerun()
-
-    st.markdown('</div>', unsafe_allow_html=True)
+            if cols[j].button(str(q_index+1), key=f"nav{q_index}"):
+                st.session_state.current_q = q_index
+                st.rerun()
 
 # Default question index
 if "current_q" not in st.session_state:
