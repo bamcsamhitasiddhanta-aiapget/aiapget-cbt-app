@@ -4,10 +4,10 @@ import time
 import pandas as pd
 st.markdown("""
 <style>
-section[data-testid="stSidebar"] button {
+div.stButton > button {
     width: 100%;
     padding: 4px;
-    font-size: 12px;
+    font-size: 11px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -73,16 +73,16 @@ secs = remaining % 60
 # Layout
 col1 = st.container()
 
-st.sidebar.markdown("## ⏳ Timer")
-st.sidebar.write(f"{mins}:{secs:02d}")
+st.markdown("### Questions")
 
-st.sidebar.markdown("## Questions")
+num_cols = 4  # desktop
 
-# Detect screen size indirectly (simple approach)
-num_cols = 2   # works best for mobile + desktop sidebar
+# adjust for smaller screens manually
+if len(questions) > 50:
+    num_cols = 3
 
 for i in range(0, len(questions), num_cols):
-    cols = st.sidebar.columns(num_cols)
+    cols = st.columns(num_cols)
 
     for j in range(num_cols):
         if i + j < len(questions):
