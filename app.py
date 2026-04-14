@@ -11,11 +11,18 @@ subjects = list(set(q["subject"] for q in questions))
 subjects.append("Full Mock Test")
 
 # Single selectbox ONLY
+import random
+
 selected_subject = st.selectbox("Select Subject", subjects, key="subject_select")
 
 # Filter logic
 if selected_subject == "Full Mock Test":
-    filtered_questions = questions
+    filtered_questions = questions.copy()
+    
+    random.shuffle(filtered_questions)
+    
+    filtered_questions = filtered_questions[:100]
+
 else:
     filtered_questions = [q for q in questions if q["subject"] == selected_subject]
 
