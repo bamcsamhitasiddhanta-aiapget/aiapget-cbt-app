@@ -51,6 +51,10 @@ if "submitted" not in st.session_state:
     st.session_state.submitted = False
 if "answers" not in st.session_state:
     st.session_state.answers = {}
+if "review" not in st.session_state:
+    st.session_state.review = {}
+if "review" not in st.session_state:
+    st.session_state.review = {}
 
 # Start screen
 if st.session_state.start_time is None:
@@ -92,24 +96,10 @@ if remaining <= 60:
 # Layout
 col1 = st.container()
 
-st.markdown("### Questions")
 
-num_cols = 4  # desktop
 
 # adjust for smaller screens manually
-if len(questions) > 50:
-    num_cols = 3
 
-for i in range(0, len(questions), num_cols):
-    cols = st.columns(num_cols)
-
-    for j in range(num_cols):
-        if i + j < len(questions):
-            q_index = i + j
-
-            if cols[j].button(str(q_index+1), key=f"nav{q_index}"):
-                st.session_state.current_q = q_index
-                st.rerun()
 
 # Default question index
 if "current_q" not in st.session_state:
@@ -138,23 +128,58 @@ with col1:
         key=current_key,
         label_visibility="collapsed"
     )
+# Mark for Review (toggle button)
+if st.button("⭐ Mark / Unmark Review"):
+    if st.session_state.current_q in st.session_state.review:
+        del st.session_state.review[st.session_state.current_q]
+    else:
+        st.session_state.review[st.session_state.current_q] = True
 
+# Show review status
+if st.session_state.current_q in st.session_state.review:
+    st.info("Marked for Review ⭐")
     # Save answer
     st.session_state.answers[st.session_state.current_q] = choice
 
-    # Navigation buttons
-    col_prev, col_next = st.columns(2)
+   # Navigation buttons (FINAL FIX)
+col_prev, col_next = st.columns(2)
 
-    with col_prev:
-        if st.button("⬅ Previous"):
-            if st.session_state.current_q > 0:
-                st.session_state.current_q -= 1
-                st.rerun()
+with col_prev:
+    if st.button("⬅ Previous"):
+        if st.session_state.current_q > 0:
+            st.session_state.current_q -= 1
+            st.rerun()
 
-    with col_next:
-        if st.button("Next ➡"):
-            if st.session_state.current_q < len(questions) - 1:
-                st.session_state.current_q += 1
+with col_next:
+    if st.button("Next ➡"):
+        if st.session_state.current_q < len(questions) - 1:
+            st.session_state.current_q += 1
+            st.rerun()
+ # Floating palette with colors
+st.markdown("---")
+st.markdown("### Questions")
+
+num_cols = 4
+if len(questions) > 50:
+    num_cols = 3
+
+for i in range(0, len(questions), num_cols):
+    cols = st.columns(num_cols)
+
+    for j in range(num_cols):
+        if i + j < len(questions):
+            q_index = i + j
+
+            # Determine status
+            if q_index in st.session_state.review:
+                label = f"🟨 {q_index+1}"
+            elif q_index in st.session_state.answers:
+                label = f"🟩 {q_index+1}"
+            else:
+                label = f"🟥 {q_index+1}"
+
+            if cols[j].button(label, key=f"nav{q_index}"):
+                st.session_state.current_q = q_index
                 st.rerun()
                 # Submit
 if st.button("Submit Test") or st.session_state.submitted:
