@@ -78,7 +78,8 @@ st.sidebar.write(f"{mins}:{secs:02d}")
 
 st.sidebar.markdown("## Questions")
 
-num_cols = 4  # desktop grid
+# Detect screen size indirectly (simple approach)
+num_cols = 2   # works best for mobile + desktop sidebar
 
 for i in range(0, len(questions), num_cols):
     cols = st.sidebar.columns(num_cols)
