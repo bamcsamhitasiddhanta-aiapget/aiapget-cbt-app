@@ -17,16 +17,16 @@ selected_subject = st.selectbox("Select Subject", subjects, key="subject_select"
 
 # Filter logic
 if selected_subject == "Full Mock Test":
-    filtered_questions = questions.copy()
-    
-    random.shuffle(filtered_questions)
-    
-    filtered_questions = filtered_questions[:100]
+    if "mock_questions" not in st.session_state or st.session_state.mock_questions is None:
+        temp = questions.copy()
+        random.shuffle(temp)
+        st.session_state.mock_questions = temp[:100]
+
+    questions = st.session_state.mock_questions
 
 else:
-    filtered_questions = [q for q in questions if q["subject"] == selected_subject]
-
-questions = filtered_questions
+    questions = [q for q in questions if q["subject"] == selected_subject]
+    st.session_state.mock_questions = None
 
 st.set_page_config(page_title="AIAPGET CBT", layout="wide")
 st.title("🧠 AIAPGET CBT Practice Test")
@@ -85,34 +85,34 @@ with col1:
     question_text = q["question"].replace("\n", " ").strip()
     st.markdown(question_text)
 
-    # Clean options
-    options = [opt.replace("\n", " ").strip() for opt in q["options"]]
+   # Clean options
+options = [opt.replace("\n", " ").strip() for opt in q["options"]]
 
-    # Initialize answer
-    if st.session_state.current_q not in st.session_state.answers:
-        st.session_state.answers[st.session_state.current_q] = options[0]
+current_key = f"q_{st.session_state.current_q}"
 
-    choice = st.radio(
-        "",
-        options,
-        key=f"q_{st.session_state.current_q}",
-        label_visibility="collapsed"
-    )
+choice = st.radio(
+    "",
+    options,
+    key=current_key,
+    label_visibility="collapsed"
+)
 
-    st.session_state.answers[st.session_state.current_q] = choice
+st.session_state.answers[st.session_state.current_q] = choice
 
-    # Navigation
-    col_prev, col_next = st.columns(2)
+# Navigation (IMPORTANT: inside col1)
+col_prev, col_next = st.columns(2)
 
-    with col_prev:
-        if st.button("⬅ Previous"):
-            if st.session_state.current_q > 0:
-                st.session_state.current_q -= 1
+with col_prev:
+    if st.button("⬅ Previous"):
+        if st.session_state.current_q > 0:
+            st.session_state.current_q -= 1
+            st.rerun()
 
-    with col_next:
-        if st.button("Next ➡"):
-            if st.session_state.current_q < len(questions) - 1:
-                st.session_state.current_q += 1
+with col_next:
+    if st.button("Next ➡"):
+        if st.session_state.current_q < len(questions) - 1:
+            st.session_state.current_q += 1
+            st.rerun()
                 # Submit
 if st.button("Submit Test") or st.session_state.submitted:
     st.session_state.submitted = True
