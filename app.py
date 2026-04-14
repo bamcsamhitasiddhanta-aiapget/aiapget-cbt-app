@@ -67,9 +67,18 @@ col1, col2 = st.columns([3, 1])
 with col2:
     st.write(f"### ⏳ {mins}:{secs:02d}")
     st.write("### Questions")
-    for i in range(len(questions)):
-        if st.button(f"Q{i+1}", key=f"nav{i}"):
-            st.session_state.current_q = i
+    num_cols = 4  # number of boxes per row
+
+for i in range(0, len(questions), num_cols):
+    cols = st.columns(num_cols)
+
+    for j in range(num_cols):
+        if i + j < len(questions):
+            q_index = i + j
+
+            if cols[j].button(f"Q{q_index+1}", key=f"nav{q_index}"):
+                st.session_state.current_q = q_index
+                st.rerun()
 
 # Default question index
 if "current_q" not in st.session_state:
@@ -79,40 +88,43 @@ if "current_q" not in st.session_state:
 q = questions[st.session_state.current_q]
 
 with col1:
+    # Question number
     st.markdown(f"### Q{st.session_state.current_q + 1}")
 
-    # Clean question
+    # Question text
     question_text = q["question"].replace("\n", " ").strip()
     st.markdown(question_text)
 
-   # Clean options
-options = [opt.replace("\n", " ").strip() for opt in q["options"]]
+    # Options
+    options = [opt.replace("\n", " ").strip() for opt in q["options"]]
 
-current_key = f"q_{st.session_state.current_q}"
+    # Radio
+    current_key = f"q_{st.session_state.current_q}"
 
-choice = st.radio(
-    "",
-    options,
-    key=current_key,
-    label_visibility="collapsed"
-)
+    choice = st.radio(
+        "",
+        options,
+        key=current_key,
+        label_visibility="collapsed"
+    )
 
-st.session_state.answers[st.session_state.current_q] = choice
+    # Save answer
+    st.session_state.answers[st.session_state.current_q] = choice
 
-# Navigation (IMPORTANT: inside col1)
-col_prev, col_next = st.columns(2)
+    # Navigation buttons
+    col_prev, col_next = st.columns(2)
 
-with col_prev:
-    if st.button("⬅ Previous"):
-        if st.session_state.current_q > 0:
-            st.session_state.current_q -= 1
-            st.rerun()
+    with col_prev:
+        if st.button("⬅ Previous"):
+            if st.session_state.current_q > 0:
+                st.session_state.current_q -= 1
+                st.rerun()
 
-with col_next:
-    if st.button("Next ➡"):
-        if st.session_state.current_q < len(questions) - 1:
-            st.session_state.current_q += 1
-            st.rerun()
+    with col_next:
+        if st.button("Next ➡"):
+            if st.session_state.current_q < len(questions) - 1:
+                st.session_state.current_q += 1
+                st.rerun()
                 # Submit
 if st.button("Submit Test") or st.session_state.submitted:
     st.session_state.submitted = True
