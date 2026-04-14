@@ -83,10 +83,13 @@ with col1:
     st.write(q["question"])
 
     choice = st.radio(
-        "Select answer:",
-        q["options"],
-        key=f"q{st.session_state.current_q}"
-    )
+    f"Select answer for Q{st.session_state.current_q}",
+    q["options"],
+    index=q["options"].index(
+        st.session_state.answers.get(st.session_state.current_q, q["options"][0])
+    ),
+    key=f"q_{st.session_state.current_q}"
+)
 
     st.session_state.answers[st.session_state.current_q] = choice
 
