@@ -2,6 +2,21 @@ import streamlit as st
 import json
 import time
 import pandas as pd
+st.markdown("""
+<style>
+.right-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.right-panel button {
+    width: 45px;
+    height: 45px;
+    margin: 3px;
+}
+</style>
+""", unsafe_allow_html=True)
 # Load questions
 with open("questions.json", "r") as f:
     questions = json.load(f)
@@ -62,23 +77,28 @@ mins = remaining // 60
 secs = remaining % 60
 
 # Layout
-col1, col2 = st.columns([3, 1])
+col1, col2 = st.columns([4, 2])
 
 with col2:
-    st.write(f"### ⏳ {mins}:{secs:02d}")
+    st.markdown('<div class="right-panel">', unsafe_allow_html=True)
+
+    st.write(f"⏳ {mins}:{secs:02d}")
     st.write("### Questions")
-    num_cols = 4  # number of boxes per row
 
-for i in range(0, len(questions), num_cols):
-    cols = st.columns(num_cols)
+    num_cols = 3
 
-    for j in range(num_cols):
-        if i + j < len(questions):
-            q_index = i + j
+    for i in range(0, len(questions), num_cols):
+        cols = st.columns(num_cols)
 
-            if cols[j].button(f"Q{q_index+1}", key=f"nav{q_index}"):
-                st.session_state.current_q = q_index
-                st.rerun()
+        for j in range(num_cols):
+            if i + j < len(questions):
+                q_index = i + j
+
+                if cols[j].button(str(q_index+1), key=f"nav{q_index}"):
+                    st.session_state.current_q = q_index
+                    st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # Default question index
 if "current_q" not in st.session_state:
