@@ -11,10 +11,15 @@ div.stButton > button {
 }
 </style>
 """, unsafe_allow_html=True)
-# Load questions
-with open("questions.json", "r") as f:
-    questions = json.load(f)
+# Load questions from folder
+import os
 
+questions = []
+
+for file in os.listdir("questions"):
+    if file.endswith(".json"):
+        with open(f"questions/{file}", "r", encoding="utf-8") as f:
+            questions.extend(json.load(f))
 # Get unique subjects
 subjects = list(set(q["subject"] for q in questions))
 subjects.append("Full Mock Test")
@@ -59,7 +64,11 @@ if st.session_state.start_time is None:
     st.stop()
 
 # Timer
-TOTAL_TIME = 600
+# Different timer for mock vs subject
+if selected_subject == "Full Mock Test":
+    TOTAL_TIME = 2400   # 2 hours (AIAPGET)
+else:
+    TOTAL_TIME = 1200   # 30 minutes (subject test)
 elapsed = time.time() - st.session_state.start_time
 remaining = int(TOTAL_TIME - elapsed)
 
@@ -69,7 +78,17 @@ if remaining <= 0:
 
 mins = remaining // 60
 secs = remaining % 60
-
+# Timer display with warning
+if remaining <= 300:  # last 5 minutes
+    st.markdown(
+        f"<h2 style='color:red;'>⏳ Time Left: {mins}:{secs:02d}</h2>",
+        unsafe_allow_html=True
+    )
+    st.warning("⚠️ Only 5 minutes left!")
+else:
+    st.markdown(f"## ⏳ Time Left: {mins}:{secs:02d}")
+if remaining <= 60:
+    st.error("🚨 Last 1 minute!")
 # Layout
 col1 = st.container()
 
