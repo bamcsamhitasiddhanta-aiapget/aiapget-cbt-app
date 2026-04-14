@@ -79,28 +79,43 @@ if "current_q" not in st.session_state:
 q = questions[st.session_state.current_q]
 
 with col1:
-    st.write(f"### Q{st.session_state.current_q + 1}")
-    st.write(q["question"])
+    st.markdown(f"### Q{st.session_state.current_q + 1}")
+    question_text = q["question"].replace("\n", " ").strip()
+st.markdown(question_text)
 
-    choice = st.radio(
-    f"Select answer for Q{st.session_state.current_q}",
-    q["options"],
-    index=q["options"].index(
-        st.session_state.answers.get(st.session_state.current_q, q["options"][0])
-    ),
-    key=f"q_{st.session_state.current_q}"
+options = [opt.replace("\n", " ").strip() for opt in q["options"]]
+saved_answer = st.session_state.answers.get(st.session_state.current_q)
+
+    # Safe index calculation
+if saved_answer in options:
+        selected_index = options.index(saved_answer)
+else:
+        selected_index = 0
+
+options = [opt.replace("\n", " ").strip() for opt in q["options"]]
+
+# Initialize answer if not present
+if st.session_state.current_q not in st.session_state.answers:
+    st.session_state.answers[st.session_state.current_q] = options[0]
+
+choice = st.radio(
+    f"Q{st.session_state.current_q + 1}",
+    options,
+    key=f"q_{st.session_state.current_q}",
+    label_visibility="collapsed"
 )
 
-    st.session_state.answers[st.session_state.current_q] = choice
+# Save answer
+st.session_state.answers[st.session_state.current_q] = choice
 
-    col_prev, col_next = st.columns(2)
+col_prev, col_next = st.columns(2)
 
-    with col_prev:
+with col_prev:
         if st.button("⬅ Previous"):
             if st.session_state.current_q > 0:
                 st.session_state.current_q -= 1
 
-    with col_next:
+with col_next:
         if st.button("Next ➡"):
             if st.session_state.current_q < len(questions) - 1:
                 st.session_state.current_q += 1
