@@ -122,12 +122,13 @@ with col1:
     # Radio
     current_key = f"q_{st.session_state.current_q}"
 
-    choice = st.radio(
-        "",
-        options,
-        key=current_key,
-        label_visibility="collapsed"
-    )
+choice = st.radio(
+    "",
+    options,
+    index=None,   # 🔥 IMPORTANT
+    key=current_key,
+    label_visibility="collapsed"
+)
 # Mark for Review (toggle button)
 if st.button("⭐ Mark / Unmark Review"):
     if st.session_state.current_q in st.session_state.review:
@@ -138,7 +139,8 @@ if st.button("⭐ Mark / Unmark Review"):
 # Show review status
 if st.session_state.current_q in st.session_state.review:
     st.info("Marked for Review ⭐")
-    # Save answer
+   # Save answer only when user interacts
+if choice is not None:
     st.session_state.answers[st.session_state.current_q] = choice
 
    # Navigation buttons (FINAL FIX)
@@ -155,30 +157,32 @@ with col_next:
         if st.session_state.current_q < len(questions) - 1:
             st.session_state.current_q += 1
             st.rerun()
- # Floating palette with colors
+ # Floating palette (FINAL FIXED)
 st.markdown("---")
 st.markdown("### Questions")
 
-num_cols = 4
-if len(questions) > 50:
-    num_cols = 3
+num_cols = 5   # better layout
 
-for i in range(0, len(questions), num_cols):
+rows = (len(questions) + num_cols - 1) // num_cols
+
+for r in range(rows):
     cols = st.columns(num_cols)
 
-    for j in range(num_cols):
-        if i + j < len(questions):
-            q_index = i + j
+    for c in range(num_cols):
+        q_index = r * num_cols + c
 
-            # Determine status
+        if q_index < len(questions):
+
+            # ✅ Color logic (INSIDE block)
             if q_index in st.session_state.review:
                 label = f"🟨 {q_index+1}"
-            elif q_index in st.session_state.answers:
+            elif q_index in st.session_state.answers and st.session_state.answers.get(q_index) is not None:
                 label = f"🟩 {q_index+1}"
             else:
                 label = f"🟥 {q_index+1}"
 
-            if cols[j].button(label, key=f"nav{q_index}"):
+            # ✅ Button also INSIDE
+            if cols[c].button(label, key=f"nav{q_index}"):
                 st.session_state.current_q = q_index
                 st.rerun()
                 # Submit
