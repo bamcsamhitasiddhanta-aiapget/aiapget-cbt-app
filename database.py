@@ -101,3 +101,19 @@ def save_result(email, subject, score, total):
 def admin_login(username, password):
     # Temporary hard-coded admin credentials
     return username == "admin" and password == "admin123"
+def save_result(email, subject, score, total):
+    import sqlite3
+
+    conn = sqlite3.connect("aiapget.db")
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        INSERT INTO results (email, subject, score, total)
+        VALUES (?, ?, ?, ?)
+        """,
+        (email, subject, score, total)
+    )
+
+    conn.commit()
+    conn.close()

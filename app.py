@@ -3,11 +3,13 @@ import streamlit as st
 import json
 import time
 import pandas as pd
-from database import register_student, login_student
+from database import register_student, login_student, save_result
 st.set_page_config(page_title="AIAPGET CBT", layout="wide")
 # Login state
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+if "is_admin" not in st.session_state:
+    st.session_state.is_admin = False
 st.markdown("""
 <style>
 div.stButton > button {
@@ -51,21 +53,38 @@ if not st.session_state.logged_in:
             else:
                 st.error("Email already registered.")
     with tab3:
-        admin_user = st.text_input("Admin Username")
-        admin_pass = st.text_input(
-             "Admin Password",
-             type="password"
-        )
+       admin_user = st.text_input(
+        "Admin Username",
+        key="admin_user"
+       )
 
-        if st.button("Admin Login"):
-             if admin_login(admin_user, admin_pass):
-                st.session_state.logged_in = True
-                st.session_state.is_admin = True
-                st.success("Admin login successful!")
-                st.rerun()
-             else:
-                st.error("Invalid admin credentials")
+       admin_pass = st.text_input(
+           "Admin Password",
+           type="password",
+           key="admin_pass"
+       )
+
+       if st.button("Admin Login", key="admin_login_btn"):
+          if admin_user == "admin" and admin_pass == "admin123":
+             st.session_state.logged_in = True
+             st.session_state.is_admin = True
+             st.success("Admin login successful!")
+             st.rerun()
+          else:
+             st.error("Invalid admin credentials")
+    st.stop()
          
+if st.session_state.get("is_admin", False):
+    st.title("👨‍💼 Admin Dashboard")
+
+    st.write("Welcome, Admin!")
+
+    if st.button("➕ Add Question"):
+        st.info("Question entry form will be added next.")
+
+    if st.button("📥 Upload Excel"):
+        st.info("Excel upload feature coming next.")
+
     st.stop()
 
 # ====================================================
@@ -86,6 +105,25 @@ subjects.append("Full Mock Test")
 import random
 
 selected_subject = st.selectbox("Select Subject", subjects, key="subject_select")
+# Reset test state when subject changes
+if "last_subject" not in st.session_state:
+    st.session_state.last_subject = selected_subject
+
+if st.session_state.last_subject != selected_subject:
+    st.session_state.last_subject = selected_subject
+
+    st.session_state.start_time = None
+    st.session_state.submitted = False
+    st.session_state.answers = {}
+    st.session_state.review = {}
+    st.session_state.current_q = 0
+    st.session_state.result_saved = False
+
+    # Reset mock questions if needed
+    if selected_subject != "Full Mock Test":
+        st.session_state.mock_questions = None
+
+    st.rerun()
 
 # Filter logic
 if selected_subject == "Full Mock Test":
@@ -123,10 +161,14 @@ if st.session_state.start_time is None:
     st.write("- Time: 10 minutes (demo)")
     st.write("- Do not refresh during test")
 
-    if st.button("Start Test"):
-        st.session_state.start_time = time.time()
-        st.session_state.result_saved = False
-    st.stop()
+if st.button("Start Test"):
+    st.session_state.start_time = time.time()
+    st.session_state.submitted = False
+    st.session_state.answers = {}
+    st.session_state.review = {}
+    st.session_state.current_q = 0
+    st.session_state.result_saved = False
+    st.rerun()
 # Refresh page every second
 if (
     st.session_state.start_time is not None
@@ -139,6 +181,9 @@ if selected_subject == "Full Mock Test":
     TOTAL_TIME = 7200   # 2 hours
 else:
     TOTAL_TIME = 1800   # 30 minutes
+if st.session_state.start_time is None:
+    st.stop()
+
 elapsed = time.time() - st.session_state.start_time
 remaining = int(TOTAL_TIME - elapsed)
 
@@ -303,30 +348,16 @@ if st.session_state.submitted:
         st.info(f"Explanation: {q['explanation']}")
         st.write("---")
 
-        st.write(f"## 🎯 Score: {score} / {len(questions)}")
-        if not st.session_state.result_saved:
-            import sqlite3
+    st.write(f"## 🎯 Score: {score} / {len(questions)}")
 
-            conn = sqlite3.connect("aiapget.db")
-            cursor = conn.cursor()
-
-            cursor.execute(
-             """
-             INSERT INTO results (email, subject, score, total)
-             VALUES (?, ?, ?, ?)
-            """,
-            (
-               st.session_state.student_email,
-               selected_subject,
-               score,
-               len(questions)
+    if not st.session_state.result_saved:
+        save_result(
+            st.session_state.student_email,
+            selected_subject,
+            score,
+            len(questions)
         )
-    )
-
-    conn.commit()
-    conn.close()
-
-    st.session_state.result_saved = True
+        st.session_state.result_saved = True
 
   
 if "show_leaderboard" not in st.session_state:
