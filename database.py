@@ -26,6 +26,19 @@ CREATE TABLE IF NOT EXISTS results (
     test_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
 """)
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS questions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    subject TEXT NOT NULL,
+    question TEXT NOT NULL,
+    option1 TEXT NOT NULL,
+    option2 TEXT NOT NULL,
+    option3 TEXT NOT NULL,
+    option4 TEXT NOT NULL,
+    answer TEXT NOT NULL,
+    explanation TEXT
+)
+""")
 
 # Save changes
 conn.commit()

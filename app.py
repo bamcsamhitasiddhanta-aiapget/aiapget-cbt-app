@@ -79,11 +79,58 @@ if st.session_state.get("is_admin", False):
 
     st.write("Welcome, Admin!")
 
+    # Add Question button
     if st.button("➕ Add Question"):
         st.info("Question entry form will be added next.")
 
-    if st.button("📥 Upload Excel"):
-        st.info("Excel upload feature coming next.")
+    # Excel Upload
+    uploaded_file = st.file_uploader(
+        "📥 Upload Excel File",
+        type=["xlsx"]
+    )
+
+    if uploaded_file is not None:
+        import pandas as pd
+
+        df = pd.read_excel(uploaded_file)
+
+        st.success(f"✅ Loaded {len(df)} questions")
+        st.dataframe(df, use_container_width=True)
+        # 👇 ADD THIS CODE HERE
+        if st.button("📥 Import Questions"):
+            import json
+            import os
+
+            for _, row in df.iterrows():
+
+                subject = str(row["subject"]).strip()
+                filename = f"questions/{subject.lower().replace(' ', '_')}.json"
+
+                new_question = {
+                    "subject": subject,
+                    "question": str(row["question"]),
+                    "options": [
+                        str(row["option1"]),
+                        str(row["option2"]),
+                        str(row["option3"]),
+                        str(row["option4"]),
+                    ],
+                    "answer": str(row["answer"]),
+                    "explanation": str(row["explanation"]),
+               }
+
+                if os.path.exists(filename):
+                    with open(filename, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                else:
+                    data = []
+
+                data.append(new_question)
+
+                with open(filename, "w", encoding="utf-8") as f:
+                    json.dump(data, f, ensure_ascii=False, indent=4)
+
+        st.success("✅ All questions imported successfully!")
 
     st.stop()
 
