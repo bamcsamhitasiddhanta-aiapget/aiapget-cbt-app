@@ -1,7 +1,13 @@
+from streamlit_autorefresh import st_autorefresh
 import streamlit as st
 import json
 import time
 import pandas as pd
+from database import register_student, login_student
+st.set_page_config(page_title="AIAPGET CBT", layout="wide")
+# Login state
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 st.markdown("""
 <style>
 div.stButton > button {
@@ -11,6 +17,58 @@ div.stButton > button {
 }
 </style>
 """, unsafe_allow_html=True)
+# ================= LOGIN / REGISTER =================
+
+if not st.session_state.logged_in:
+
+    st.title("🧠 AIAPGET CBT Login")
+
+    tab1, tab2, tab3 = st.tabs(["🔐 Login", "📝 Register", "👨‍💼 Admin"])
+
+    with tab1:
+        email = st.text_input("Email", key="login_email")
+        password = st.text_input("Password", type="password", key="login_password")
+
+        if st.button("Login"):
+            student = login_student(email, password)
+
+            if student:
+                st.session_state.logged_in = True
+                st.session_state.student_email = email
+                st.success("Login Successful!")
+                st.rerun()
+            else:
+                st.error("Invalid email or password")
+
+    with tab2:
+        name = st.text_input("Full Name")
+        reg_email = st.text_input("Email", key="reg_email")
+        reg_password = st.text_input("Password", type="password", key="reg_password")
+
+        if st.button("Register"):
+            if register_student(name, reg_email, reg_password):
+                st.success("Registration successful! Please log in.")
+            else:
+                st.error("Email already registered.")
+    with tab3:
+        admin_user = st.text_input("Admin Username")
+        admin_pass = st.text_input(
+             "Admin Password",
+             type="password"
+        )
+
+        if st.button("Admin Login"):
+             if admin_login(admin_user, admin_pass):
+                st.session_state.logged_in = True
+                st.session_state.is_admin = True
+                st.success("Admin login successful!")
+                st.rerun()
+             else:
+                st.error("Invalid admin credentials")
+         
+    st.stop()
+
+# ====================================================
 # Load questions from folder
 import os
 
@@ -42,7 +100,7 @@ else:
     questions = [q for q in questions if q["subject"] == selected_subject]
     st.session_state.mock_questions = None
 
-st.set_page_config(page_title="AIAPGET CBT", layout="wide")
+
 st.title("🧠 AIAPGET CBT Practice Test")
 # Session state
 if "start_time" not in st.session_state:
@@ -55,6 +113,8 @@ if "review" not in st.session_state:
     st.session_state.review = {}
 if "review" not in st.session_state:
     st.session_state.review = {}
+if "result_saved" not in st.session_state:
+    st.session_state.result_saved = False
 
 # Start screen
 if st.session_state.start_time is None:
@@ -65,14 +125,20 @@ if st.session_state.start_time is None:
 
     if st.button("Start Test"):
         st.session_state.start_time = time.time()
+        st.session_state.result_saved = False
     st.stop()
-
+# Refresh page every second
+if (
+    st.session_state.start_time is not None
+    and not st.session_state.submitted
+):
+    st_autorefresh(interval=1000, key="timer_refresh")
 # Timer
 # Different timer for mock vs subject
 if selected_subject == "Full Mock Test":
-    TOTAL_TIME = 2400   # 2 hours (AIAPGET)
+    TOTAL_TIME = 7200   # 2 hours
 else:
-    TOTAL_TIME = 1200   # 30 minutes (subject test)
+    TOTAL_TIME = 1800   # 30 minutes
 elapsed = time.time() - st.session_state.start_time
 remaining = int(TOTAL_TIME - elapsed)
 
@@ -83,20 +149,23 @@ if remaining <= 0:
 mins = remaining // 60
 secs = remaining % 60
 # Timer display with warning
-if remaining <= 300:  # last 5 minutes
-    st.markdown(
+timer_placeholder = st.empty()
+
+if remaining <= 300:
+    timer_placeholder.markdown(
         f"<h2 style='color:red;'>⏳ Time Left: {mins}:{secs:02d}</h2>",
         unsafe_allow_html=True
     )
     st.warning("⚠️ Only 5 minutes left!")
 else:
-    st.markdown(f"## ⏳ Time Left: {mins}:{secs:02d}")
+    timer_placeholder.markdown(
+        f"## ⏳ Time Left: {mins}:{secs:02d}"
+    )
+
 if remaining <= 60:
     st.error("🚨 Last 1 minute!")
 # Layout
 col1 = st.container()
-
-
 
 # adjust for smaller screens manually
 
@@ -185,11 +254,34 @@ for r in range(rows):
             if cols[c].button(label, key=f"nav{q_index}"):
                 st.session_state.current_q = q_index
                 st.rerun()
-                # Submit
-if st.button("Submit Test") or st.session_state.submitted:
-    st.session_state.submitted = True
+                st.markdown("---")
+st.subheader("📋 Test Summary")
 
-name = st.text_input("Enter your name")
+answered = len(st.session_state.answers)
+reviewed = len(st.session_state.review)
+
+# Questions marked for review are still counted as answered if an answer was selected
+not_answered = len(questions) - answered
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.success(f"🟩 Answered: {answered}")
+
+with col2:
+    st.warning(f"🟨 Review: {reviewed}")
+
+with col3:
+    st.error(f"🟥 Not Answered: {not_answered}")
+                # Submit
+confirm_submit = st.checkbox(
+    "✅ I have reviewed my answers and want to submit."
+)
+
+if confirm_submit and st.button("🚀 Submit Test"):
+    st.session_state.submitted = True
+if "result_saved" not in st.session_state:
+    st.session_state.result_saved = False
 
 if st.session_state.submitted:
     st.subheader("📊 Results")
@@ -211,23 +303,39 @@ if st.session_state.submitted:
         st.info(f"Explanation: {q['explanation']}")
         st.write("---")
 
-    st.write(f"## 🎯 Score: {score} / {len(questions)}")
+        st.write(f"## 🎯 Score: {score} / {len(questions)}")
+        if not st.session_state.result_saved:
+            import sqlite3
 
-    # Save score
-    if name:
-        score_data = {"Name": name, "Score": score}
-        
-        try:
-            df = pd.read_csv("scores.csv")
-        except:
-            df = pd.DataFrame(columns=["Name", "Score"])
-        
-        df = pd.concat([df, pd.DataFrame([score_data])], ignore_index=True)
-        df.to_csv("scores.csv", index=False)
+            conn = sqlite3.connect("aiapget.db")
+            cursor = conn.cursor()
 
-st.markdown("---")
+            cursor.execute(
+             """
+             INSERT INTO results (email, subject, score, total)
+             VALUES (?, ?, ?, ?)
+            """,
+            (
+               st.session_state.student_email,
+               selected_subject,
+               score,
+               len(questions)
+        )
+    )
+
+    conn.commit()
+    conn.close()
+
+    st.session_state.result_saved = True
+
+  
+if "show_leaderboard" not in st.session_state:
+    st.session_state.show_leaderboard = False
 
 if st.button("📊 Show Leaderboard"):
+    st.session_state.show_leaderboard = True
+
+if st.session_state.show_leaderboard:
     try:
         df = pd.read_csv("scores.csv")
         df = df.sort_values(by="Score", ascending=False)
