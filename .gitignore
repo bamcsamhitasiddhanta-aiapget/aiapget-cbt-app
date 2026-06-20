@@ -1,0 +1,4 @@
+aiapget.db
+.vscode/
+__pycache__/
+*.pyc
