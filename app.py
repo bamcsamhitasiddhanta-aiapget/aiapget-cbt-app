@@ -100,7 +100,8 @@ if st.session_state.get("is_admin", False):
         if st.button("📥 Import Questions"):
             import json
             import os
-
+            imported_count = 0
+            skipped_count = 0
             for _, row in df.iterrows():
 
                 subject = str(row["subject"]).strip()
@@ -125,13 +126,30 @@ if st.session_state.get("is_admin", False):
                 else:
                     data = []
 
-                data.append(new_question)
+                # Check for duplicate question
+                duplicate = False
+
+                for existing in data:
+                    if (
+                        existing.get("question", "").strip().lower()
+                        == new_question["question"].strip().lower()
+                   ):
+                        duplicate = True
+                        break
+
+                if not duplicate:
+                    data.append(new_question)
+                    imported_count += 1
+                else:
+                    skipped_count += 1
 
                 with open(filename, "w", encoding="utf-8") as f:
                     json.dump(data, f, ensure_ascii=False, indent=4)
 
-        st.success("✅ All questions imported successfully!")
-
+            st.success(
+                f"✅ Imported {imported_count} new questions.\n"
+                f"⚠️ Skipped {skipped_count} duplicate questions."
+  )
     st.stop()
 
 # ====================================================
