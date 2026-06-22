@@ -3,7 +3,11 @@ import streamlit as st
 import json
 import time
 import pandas as pd
-from database import register_student, login_student, save_result
+import db_utils
+import inspect
+
+from db_utils import register_student, login_student
+
 st.set_page_config(page_title="AIAPGET CBT", layout="wide")
 # Login state
 if "logged_in" not in st.session_state:
@@ -35,10 +39,11 @@ if not st.session_state.logged_in:
             student = login_student(email, password)
 
             if student:
-                st.session_state.logged_in = True
-                st.session_state.student_email = email
-                st.success("Login Successful!")
-                st.rerun()
+               st.session_state.logged_in = True
+               st.session_state.student_email = student[2]   # email
+               st.session_state.student_name = student[1]    # name
+               st.success("Login Successful!")
+               st.rerun()
             else:
                 st.error("Invalid email or password")
 
@@ -416,7 +421,8 @@ if st.session_state.submitted:
     st.write(f"## 🎯 Score: {score} / {len(questions)}")
 
     if not st.session_state.result_saved:
-        save_result(
+        db_utils.save_result(
+            st.session_state.student_name,
             st.session_state.student_email,
             selected_subject,
             score,
@@ -428,14 +434,64 @@ if st.session_state.submitted:
 if "show_leaderboard" not in st.session_state:
     st.session_state.show_leaderboard = False
 
-if st.button("📊 Show Leaderboard"):
+if st.button("📋 My Test History"):
+    import sqlite3
+
+    conn = sqlite3.connect("aiapget.db")
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT subject, score, total, test_date
+        FROM results
+        WHERE email = ?
+        ORDER BY test_date DESC
+        """,
+        (st.session_state.student_email,)
+    )
+
+    history = cursor.fetchall()
+    conn.close()
+
+    st.subheader("📋 My Test History")
+
+    if history:
+        history_df = pd.DataFrame(
+            history,
+            columns=["Subject", "Score", "Total", "Date"]
+        )
+        st.dataframe(history_df, use_container_width=True)
+    else:
+        st.info("No test history found.")
+if "show_leaderboard" not in st.session_state:
+    st.session_state.show_leaderboard = False
+
+if st.button("🏆 Show Leaderboard"):
     st.session_state.show_leaderboard = True
 
 if st.session_state.show_leaderboard:
-    try:
-        df = pd.read_csv("scores.csv")
-        df = df.sort_values(by="Score", ascending=False)
-        st.subheader("🏆 Leaderboard")
-        st.dataframe(df)
-    except:
-        st.warning("No scores available yet")
+    import sqlite3
+
+    conn = sqlite3.connect("aiapget.db")
+
+    query = """
+    SELECT
+        email AS Student,
+        subject AS Subject,
+        score AS Score,
+        total AS Total,
+        ROUND(score * 100.0 / total, 2) AS Percentage,
+        test_date AS Date
+    FROM results
+    ORDER BY Percentage DESC, Score DESC
+    """
+
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+
+    st.subheader("🏆 Leaderboard")
+
+    if df.empty:
+        st.info("No results available yet.")
+    else:
+        st.dataframe(df, use_container_width=True)

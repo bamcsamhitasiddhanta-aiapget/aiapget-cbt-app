@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS students (
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS results (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
     email TEXT NOT NULL,
     subject TEXT NOT NULL,
     score INTEGER NOT NULL,
@@ -95,26 +96,11 @@ def register_student(name, email, password):
     conn.close()
 
     return True
-def save_result(email, subject, score, total):
-    import sqlite3
 
-    conn = sqlite3.connect("aiapget.db")
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        INSERT INTO results (email, subject, score, total)
-        VALUES (?, ?, ?, ?)
-        """,
-        (email, subject, score, total)
-    )
-
-    conn.commit()
-    conn.close()
 def admin_login(username, password):
     # Temporary hard-coded admin credentials
     return username == "admin" and password == "admin123"
-def save_result(email, subject, score, total):
+def save_result(name, email, subject, score, total):
     import sqlite3
 
     conn = sqlite3.connect("aiapget.db")
@@ -122,10 +108,10 @@ def save_result(email, subject, score, total):
 
     cursor.execute(
         """
-        INSERT INTO results (email, subject, score, total)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO results (name, email, subject, score, total)
+        VALUES (?, ?, ?, ?, ?)
         """,
-        (email, subject, score, total)
+        (name, email, subject, score, total)
     )
 
     conn.commit()
