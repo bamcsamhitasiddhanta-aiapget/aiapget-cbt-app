@@ -476,7 +476,7 @@ if st.session_state.show_leaderboard:
 
     query = """
     SELECT
-        email AS Student,
+        name AS Student,
         subject AS Subject,
         score AS Score,
         total AS Total,
