@@ -161,12 +161,37 @@ if st.session_state.get("is_admin", False):
 # Load questions from folder
 import os
 
+import sqlite3
+
+conn = sqlite3.connect("aiapget.db")
+cursor = conn.cursor()
+
+cursor.execute("""
+SELECT
+    subject,
+    question,
+    option1,
+    option2,
+    option3,
+    option4,
+    answer,
+    explanation
+FROM questions
+""")
+
+rows = cursor.fetchall()
+conn.close()
+
 questions = []
 
-for file in os.listdir("questions"):
-    if file.endswith(".json"):
-        with open(f"questions/{file}", "r", encoding="utf-8") as f:
-            questions.extend(json.load(f))
+for row in rows:
+    questions.append({
+        "subject": row[0],
+        "question": row[1],
+        "options": [row[2], row[3], row[4], row[5]],
+        "answer": row[6],
+        "explanation": row[7],
+    })
 # Get unique subjects
 subjects = list(set(q["subject"] for q in questions))
 subjects.append("Full Mock Test")
