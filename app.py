@@ -79,82 +79,9 @@ if not st.session_state.logged_in:
              st.error("Invalid admin credentials")
     st.stop()
          
+import admin
 if st.session_state.get("is_admin", False):
-    st.title("👨‍💼 Admin Dashboard")
-
-    st.write("Welcome, Admin!")
-
-    # Add Question button
-    if st.button("➕ Add Question"):
-        st.info("Question entry form will be added next.")
-
-    # Excel Upload
-    uploaded_file = st.file_uploader(
-        "📥 Upload Excel File",
-        type=["xlsx"]
-    )
-
-    if uploaded_file is not None:
-        import pandas as pd
-
-        df = pd.read_excel(uploaded_file)
-
-        st.success(f"✅ Loaded {len(df)} questions")
-        st.dataframe(df, use_container_width=True)
-        # 👇 ADD THIS CODE HERE
-        if st.button("📥 Import Questions"):
-            import json
-            import os
-            imported_count = 0
-            skipped_count = 0
-            for _, row in df.iterrows():
-
-                subject = str(row["subject"]).strip()
-                filename = f"questions/{subject.lower().replace(' ', '_')}.json"
-
-                new_question = {
-                    "subject": subject,
-                    "question": str(row["question"]),
-                    "options": [
-                        str(row["option1"]),
-                        str(row["option2"]),
-                        str(row["option3"]),
-                        str(row["option4"]),
-                    ],
-                    "answer": str(row["answer"]),
-                    "explanation": str(row["explanation"]),
-               }
-
-                if os.path.exists(filename):
-                    with open(filename, "r", encoding="utf-8") as f:
-                        data = json.load(f)
-                else:
-                    data = []
-
-                # Check for duplicate question
-                duplicate = False
-
-                for existing in data:
-                    if (
-                        existing.get("question", "").strip().lower()
-                        == new_question["question"].strip().lower()
-                   ):
-                        duplicate = True
-                        break
-
-                if not duplicate:
-                    data.append(new_question)
-                    imported_count += 1
-                else:
-                    skipped_count += 1
-
-                with open(filename, "w", encoding="utf-8") as f:
-                    json.dump(data, f, ensure_ascii=False, indent=4)
-
-            st.success(
-                f"✅ Imported {imported_count} new questions.\n"
-                f"⚠️ Skipped {skipped_count} duplicate questions."
-  )
+    admin.show_admin_dashboard()
     st.stop()
 
 # ====================================================
