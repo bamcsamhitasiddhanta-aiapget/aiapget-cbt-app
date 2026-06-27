@@ -1,12 +1,11 @@
-from streamlit_autorefresh import st_autorefresh
-import streamlit as st
-import json
 import time
-import pandas as pd
-import db_utils
-import inspect
 
-from db_utils import register_student, login_student
+import pandas as pd
+import streamlit as st
+from streamlit_autorefresh import st_autorefresh
+
+import db_utils
+from db_utils import login_student, register_student
 
 st.set_page_config(page_title="AIAPGET CBT", layout="wide")
 # Login state
@@ -14,7 +13,8 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "is_admin" not in st.session_state:
     st.session_state.is_admin = False
-st.markdown("""
+st.markdown(
+    """
 <style>
 div.stButton > button {
     width: 100%;
@@ -22,11 +22,12 @@ div.stButton > button {
     font-size: 11px;
 }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 # ================= LOGIN / REGISTER =================
 
 if not st.session_state.logged_in:
-
     st.title("🧠 AIAPGET CBT Login")
 
     tab1, tab2, tab3 = st.tabs(["🔐 Login", "📝 Register", "👨‍💼 Admin"])
@@ -39,11 +40,11 @@ if not st.session_state.logged_in:
             student = login_student(email, password)
 
             if student:
-               st.session_state.logged_in = True
-               st.session_state.student_email = student[2]   # email
-               st.session_state.student_name = student[1]    # name
-               st.success("Login Successful!")
-               st.rerun()
+                st.session_state.logged_in = True
+                st.session_state.student_email = student[2]  # email
+                st.session_state.student_name = student[1]  # name
+                st.success("Login Successful!")
+                st.rerun()
             else:
                 st.error("Invalid email or password")
 
@@ -58,35 +59,28 @@ if not st.session_state.logged_in:
             else:
                 st.error("Email already registered.")
     with tab3:
-       admin_user = st.text_input(
-        "Admin Username",
-        key="admin_user"
-       )
+        admin_user = st.text_input("Admin Username", key="admin_user")
 
-       admin_pass = st.text_input(
-           "Admin Password",
-           type="password",
-           key="admin_pass"
-       )
+        admin_pass = st.text_input("Admin Password", type="password", key="admin_pass")
 
-       if st.button("Admin Login", key="admin_login_btn"):
-          if admin_user == "admin" and admin_pass == "admin123":
-             st.session_state.logged_in = True
-             st.session_state.is_admin = True
-             st.success("Admin login successful!")
-             st.rerun()
-          else:
-             st.error("Invalid admin credentials")
+        if st.button("Admin Login", key="admin_login_btn"):
+            if admin_user == "admin" and admin_pass == "admin123":
+                st.session_state.logged_in = True
+                st.session_state.is_admin = True
+                st.success("Admin login successful!")
+                st.rerun()
+            else:
+                st.error("Invalid admin credentials")
     st.stop()
-         
+
 import admin
+
 if st.session_state.get("is_admin", False):
     admin.show_admin_dashboard()
     st.stop()
 
 # ====================================================
 # Load questions from folder
-import os
 
 import sqlite3
 
@@ -112,13 +106,15 @@ conn.close()
 questions = []
 
 for row in rows:
-    questions.append({
-        "subject": row[0],
-        "question": row[1],
-        "options": [row[2], row[3], row[4], row[5]],
-        "answer": row[6],
-        "explanation": row[7],
-    })
+    questions.append(
+        {
+            "subject": row[0],
+            "question": row[1],
+            "options": [row[2], row[3], row[4], row[5]],
+            "answer": row[6],
+            "explanation": row[7],
+        }
+    )
 # Get unique subjects
 subjects = list(set(q["subject"] for q in questions))
 subjects.append("Full Mock Test")
@@ -149,7 +145,10 @@ if st.session_state.last_subject != selected_subject:
 
 # Filter logic
 if selected_subject == "Full Mock Test":
-    if "mock_questions" not in st.session_state or st.session_state.mock_questions is None:
+    if (
+        "mock_questions" not in st.session_state
+        or st.session_state.mock_questions is None
+    ):
         temp = questions.copy()
         random.shuffle(temp)
         st.session_state.mock_questions = temp[:100]
@@ -192,17 +191,14 @@ if st.button("Start Test"):
     st.session_state.result_saved = False
     st.rerun()
 # Refresh page every second
-if (
-    st.session_state.start_time is not None
-    and not st.session_state.submitted
-):
+if st.session_state.start_time is not None and not st.session_state.submitted:
     st_autorefresh(interval=1000, key="timer_refresh")
 # Timer
 # Different timer for mock vs subject
 if selected_subject == "Full Mock Test":
-    TOTAL_TIME = 7200   # 2 hours
+    TOTAL_TIME = 7200  # 2 hours
 else:
-    TOTAL_TIME = 1800   # 30 minutes
+    TOTAL_TIME = 1800  # 30 minutes
 if st.session_state.start_time is None:
     st.stop()
 
@@ -221,13 +217,11 @@ timer_placeholder = st.empty()
 if remaining <= 300:
     timer_placeholder.markdown(
         f"<h2 style='color:red;'>⏳ Time Left: {mins}:{secs:02d}</h2>",
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
     st.warning("⚠️ Only 5 minutes left!")
 else:
-    timer_placeholder.markdown(
-        f"## ⏳ Time Left: {mins}:{secs:02d}"
-    )
+    timer_placeholder.markdown(f"## ⏳ Time Left: {mins}:{secs:02d}")
 
 if remaining <= 60:
     st.error("🚨 Last 1 minute!")
@@ -261,9 +255,9 @@ with col1:
 choice = st.radio(
     "",
     options,
-    index=None,   # 🔥 IMPORTANT
+    index=None,  # 🔥 IMPORTANT
     key=current_key,
-    label_visibility="collapsed"
+    label_visibility="collapsed",
 )
 # Mark for Review (toggle button)
 if st.button("⭐ Mark / Unmark Review"):
@@ -275,11 +269,11 @@ if st.button("⭐ Mark / Unmark Review"):
 # Show review status
 if st.session_state.current_q in st.session_state.review:
     st.info("Marked for Review ⭐")
-   # Save answer only when user interacts
+# Save answer only when user interacts
 if choice is not None:
     st.session_state.answers[st.session_state.current_q] = choice
 
-   # Navigation buttons (FINAL FIX)
+# Navigation buttons (FINAL FIX)
 col_prev, col_next = st.columns(2)
 
 with col_prev:
@@ -293,11 +287,11 @@ with col_next:
         if st.session_state.current_q < len(questions) - 1:
             st.session_state.current_q += 1
             st.rerun()
- # Floating palette (FINAL FIXED)
+# Floating palette (FINAL FIXED)
 st.markdown("---")
 st.markdown("### Questions")
 
-num_cols = 5   # better layout
+num_cols = 5  # better layout
 
 rows = (len(questions) + num_cols - 1) // num_cols
 
@@ -308,14 +302,16 @@ for r in range(rows):
         q_index = r * num_cols + c
 
         if q_index < len(questions):
-
             # ✅ Color logic (INSIDE block)
             if q_index in st.session_state.review:
-                label = f"🟨 {q_index+1}"
-            elif q_index in st.session_state.answers and st.session_state.answers.get(q_index) is not None:
-                label = f"🟩 {q_index+1}"
+                label = f"🟨 {q_index + 1}"
+            elif (
+                q_index in st.session_state.answers
+                and st.session_state.answers.get(q_index) is not None
+            ):
+                label = f"🟩 {q_index + 1}"
             else:
-                label = f"🟥 {q_index+1}"
+                label = f"🟥 {q_index + 1}"
 
             # ✅ Button also INSIDE
             if cols[c].button(label, key=f"nav{q_index}"):
@@ -340,10 +336,8 @@ with col2:
 
 with col3:
     st.error(f"🟥 Not Answered: {not_answered}")
-                # Submit
-confirm_submit = st.checkbox(
-    "✅ I have reviewed my answers and want to submit."
-)
+    # Submit
+confirm_submit = st.checkbox("✅ I have reviewed my answers and want to submit.")
 
 if confirm_submit and st.button("🚀 Submit Test"):
     st.session_state.submitted = True
@@ -352,7 +346,7 @@ if "result_saved" not in st.session_state:
 
 if st.session_state.submitted:
     st.subheader("📊 Results")
-    
+
     score = 0
 
     for i, q in enumerate(questions):
@@ -361,9 +355,9 @@ if st.session_state.submitted:
 
         if user_ans == correct:
             score += 1
-            st.success(f"Q{i+1}: Correct")
+            st.success(f"Q{i + 1}: Correct")
         else:
-            st.error(f"Q{i+1}: Wrong")
+            st.error(f"Q{i + 1}: Wrong")
 
         st.write(f"Your Answer: {user_ans}")
         st.write(f"Correct Answer: {correct}")
@@ -378,11 +372,11 @@ if st.session_state.submitted:
             st.session_state.student_email,
             selected_subject,
             score,
-            len(questions)
+            len(questions),
         )
         st.session_state.result_saved = True
 
-  
+
 if "show_leaderboard" not in st.session_state:
     st.session_state.show_leaderboard = False
 
@@ -399,7 +393,7 @@ if st.button("📋 My Test History"):
         WHERE email = ?
         ORDER BY test_date DESC
         """,
-        (st.session_state.student_email,)
+        (st.session_state.student_email,),
     )
 
     history = cursor.fetchall()
@@ -409,8 +403,7 @@ if st.button("📋 My Test History"):
 
     if history:
         history_df = pd.DataFrame(
-            history,
-            columns=["Subject", "Score", "Total", "Date"]
+            history, columns=["Subject", "Score", "Total", "Date"]
         )
         st.dataframe(history_df, use_container_width=True)
     else:

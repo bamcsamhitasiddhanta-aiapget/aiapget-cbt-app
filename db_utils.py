@@ -48,9 +48,10 @@ conn.commit()
 conn.close()
 
 print("Database and students table created successfully!")
+
+
 def login_student(email, password):
     import sqlite3
-    import hashlib
 
     conn = sqlite3.connect("aiapget.db")
     cursor = conn.cursor()
@@ -58,8 +59,7 @@ def login_student(email, password):
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
     cursor.execute(
-        "SELECT * FROM students WHERE email=? AND password=?",
-        (email, hashed_password)
+        "SELECT * FROM students WHERE email=? AND password=?", (email, hashed_password)
     )
 
     student = cursor.fetchone()
@@ -67,18 +67,16 @@ def login_student(email, password):
     conn.close()
 
     return student
+
+
 def register_student(name, email, password):
     import sqlite3
-    import hashlib
 
     conn = sqlite3.connect("aiapget.db")
     cursor = conn.cursor()
 
     # Check if email exists
-    cursor.execute(
-        "SELECT * FROM students WHERE email=?",
-        (email,)
-    )
+    cursor.execute("SELECT * FROM students WHERE email=?", (email,))
 
     if cursor.fetchone():
         conn.close()
@@ -89,7 +87,7 @@ def register_student(name, email, password):
 
     cursor.execute(
         "INSERT INTO students (name, email, password) VALUES (?, ?, ?)",
-        (name, email, hashed_password)
+        (name, email, hashed_password),
     )
 
     conn.commit()
@@ -97,9 +95,12 @@ def register_student(name, email, password):
 
     return True
 
+
 def admin_login(username, password):
     # Temporary hard-coded admin credentials
     return username == "admin" and password == "admin123"
+
+
 def save_result(name, email, subject, score, total):
     import sqlite3
 
@@ -111,7 +112,7 @@ def save_result(name, email, subject, score, total):
         INSERT INTO results (name, email, subject, score, total)
         VALUES (?, ?, ?, ?, ?)
         """,
-        (name, email, subject, score, total)
+        (name, email, subject, score, total),
     )
 
     conn.commit()
