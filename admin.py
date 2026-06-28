@@ -1,3 +1,4 @@
+import os
 import sqlite3
 
 import pandas as pd
@@ -11,8 +12,13 @@ def show_admin_dashboard():
     # -------------------------------
     # Tabs
     # -------------------------------
-    tab1, tab2, tab3 = st.tabs(
-        ["📥 Import Excel", "✏️ Manage Questions", "➕ Add Question"]
+    tab1, tab2, tab3, tab4 = st.tabs(
+        [
+            "📥 Import Excel",
+            "✏️ Manage Questions",
+            "➕ Add Question",
+            "📤 Export Questions",
+        ]
     )
 
     # =====================================================
@@ -156,7 +162,8 @@ def show_admin_dashboard():
                         option3,
                         option4,
                         answer,
-                        explanation
+                        explanation,
+                        image
                     FROM questions
                     WHERE id = ?
                     """,
@@ -164,6 +171,13 @@ def show_admin_dashboard():
                 )
 
                 row = cursor.fetchone()
+                if row[7]:
+                    if os.path.exists(row[7]):
+                        st.image(
+                            row[7],
+                            width=350,
+                            caption="Question Image",
+                        )
 
                 question = st.text_area(
                     "Question",
@@ -264,7 +278,8 @@ def show_admin_dashboard():
     # TAB 3 - ADD QUESTION
     # =====================================================
     with tab3:
-        st.success("Tab 3 Loaded")
+        if "add_form_version" not in st.session_state:
+            st.session_state.add_form_version = 0
         st.subheader("➕ Add New Question")
 
         conn = sqlite3.connect("aiapget.db")
@@ -291,19 +306,44 @@ def show_admin_dashboard():
 
         st.divider()
 
-        question = st.text_area("Question", height=120, key="question")
+        question = st.text_area(
+            "Question", height=120, key=f"question_{st.session_state.add_form_version}"
+        )
+        st.divider()
 
+        st.subheader("📷 Question Image")
+
+        uploaded_image = st.file_uploader(
+            "Upload Question Image",
+            type=["png", "jpg", "jpeg", "webp"],
+            key=f"question_image_{st.session_state.add_form_version}",
+        )
+
+        if uploaded_image is not None:
+            st.image(
+                uploaded_image,
+                width=300,
+                caption="Preview",
+            )
         st.markdown("### Options")
 
         col1, col2 = st.columns(2)
 
         with col1:
-            option1 = st.text_input("Option 1", key="option1")
-            option2 = st.text_input("Option 2", key="option2")
+            option1 = st.text_input(
+                "Option 1", key=f"option1_{st.session_state.add_form_version}"
+            )
+            option2 = st.text_input(
+                "Option 2", key=f"option2_{st.session_state.add_form_version}"
+            )
 
         with col2:
-            option3 = st.text_input("Option 3", key="option3")
-            option4 = st.text_input("Option 4", key="option4")
+            option3 = st.text_input(
+                "Option 3", key=f"option3_{st.session_state.add_form_version}"
+            )
+            option4 = st.text_input(
+                "Option 4", key=f"option4_{st.session_state.add_form_version}"
+            )
 
         st.divider()
 
@@ -322,7 +362,11 @@ def show_admin_dashboard():
 
         answer = answer_map[answer_choice]
 
-        explanation = st.text_area("Explanation", height=120, key="explanation")
+        explanation = st.text_area(
+            "Explanation",
+            height=120,
+            key=f"explanation_{st.session_state.add_form_version}",
+        )
 
         st.divider()
 
@@ -354,6 +398,23 @@ def show_admin_dashboard():
                     st.warning("⚠️ Question already exists.")
 
                 else:
+                    image_path = ""
+
+                    if uploaded_image is not None:
+                        os.makedirs("images/questions", exist_ok=True)
+
+                        extension = uploaded_image.name.split(".")[-1]
+
+                        cursor.execute("SELECT IFNULL(MAX(id),0)+1 FROM questions")
+                        next_id = cursor.fetchone()[0]
+
+                        filename = f"Q{next_id}.{extension}"
+
+                        image_path = os.path.join("images", "questions", filename)
+
+                        with open(image_path, "wb") as f:
+                            f.write(uploaded_image.getbuffer())
+
                     cursor.execute(
                         """
                         INSERT INTO questions
@@ -365,9 +426,10 @@ def show_admin_dashboard():
                             option3,
                             option4,
                             answer,
-                            explanation
+                            explanation,
+                            image
                         )
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                         (
                             subject.strip(),
@@ -378,6 +440,7 @@ def show_admin_dashboard():
                             option4.strip(),
                             answer.strip(),
                             explanation.strip(),
+                            image_path,
                         ),
                     )
 
@@ -386,5 +449,90 @@ def show_admin_dashboard():
                     st.success("✅ Question added successfully!")
 
                     st.balloons()
+
+                    st.session_state.add_form_version += 1
+                    st.rerun()
+
+        conn.close()
+    # =====================================================
+    # TAB 4 - EXPORT QUESTIONS
+    # =====================================================
+    with tab4:
+        st.subheader("📤 Export Questions")
+        conn = sqlite3.connect("aiapget.db")
+
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        SELECT DISTINCT subject
+        FROM questions
+        ORDER BY subject
+        """)
+
+        subjects = [row[0] for row in cursor.fetchall()]
+        export_type = st.radio(
+            "Export Type",
+            ["All Subjects", "Selected Subject"],
+            horizontal=True,
+        )
+        if export_type == "Selected Subject":
+            selected_subject = st.selectbox("Subject", subjects, key="export_subject")
+
+            query = """
+                 SELECT
+                     subject,
+                     question,
+                     option1,
+                     option2,
+                     option3,
+                     option4,
+                     answer,
+                     explanation
+                 FROM questions
+                 WHERE subject=?
+                 ORDER BY id
+             """
+
+            df = pd.read_sql_query(query, conn, params=(selected_subject,))
+
+        else:
+            query = """
+                SELECT
+                    subject,
+                    question,
+                    option1,
+                    option2,
+                    option3,
+                    option4,
+                    answer,
+                    explanation
+                FROM questions
+                ORDER BY subject,id
+            """
+
+            df = pd.read_sql_query(query, conn)
+        st.success(f"Total Questions : {len(df)}")
+
+        st.dataframe(
+            df.head(20),
+            use_container_width=True,
+        )
+        filename = "AIAPGET_Questions.xlsx"
+
+        if export_type == "Selected Subject":
+            filename = f"{selected_subject}.xlsx"
+
+        df.to_excel(
+            filename,
+            index=False,
+        )
+
+        with open(filename, "rb") as file:
+            st.download_button(
+                "📥 Download Excel",
+                file,
+                file_name=filename,
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
 
         conn.close()
