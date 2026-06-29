@@ -1,10 +1,13 @@
+import os
 import time
 
 import pandas as pd
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
+import admin
 import db_utils
+import student_test
 from db_utils import login_student, register_student
 
 st.set_page_config(page_title="AIAPGET CBT", layout="wide")
@@ -73,7 +76,6 @@ if not st.session_state.logged_in:
                 st.error("Invalid admin credentials")
     st.stop()
 
-import admin
 
 if st.session_state.get("is_admin", False):
     admin.show_admin_dashboard()
@@ -96,7 +98,8 @@ SELECT
     option3,
     option4,
     answer,
-    explanation
+    explanation,
+    image
 FROM questions
 """)
 
@@ -113,6 +116,7 @@ for row in rows:
             "options": [row[2], row[3], row[4], row[5]],
             "answer": row[6],
             "explanation": row[7],
+            "image": row[8],
         }
     )
 # Get unique subjects
@@ -122,7 +126,12 @@ subjects.append("Full Mock Test")
 # Single selectbox ONLY
 import random
 
-selected_subject = st.selectbox("Select Subject", subjects, key="subject_select")
+selected_subject = st.selectbox(
+    "Select Subject",
+    subjects,
+    key="subject_select",
+    disabled=st.session_state.get("test_state") == "running",
+)
 # Reset test state when subject changes
 if "last_subject" not in st.session_state:
     st.session_state.last_subject = selected_subject
@@ -159,7 +168,14 @@ else:
     questions = [q for q in questions if q["subject"] == selected_subject]
     st.session_state.mock_questions = None
 
+student_test.show_test(
+    questions=questions,
+    selected_subject=selected_subject,
+    student_name=st.session_state.student_name,
+    student_email=st.session_state.student_email,
+)
 
+st.stop()
 st.title("🧠 AIAPGET CBT Practice Test")
 # Session state
 if "start_time" not in st.session_state:
@@ -176,20 +192,18 @@ if "result_saved" not in st.session_state:
     st.session_state.result_saved = False
 
 # Start screen
-if st.session_state.start_time is None:
+if not st.session_state.get("test_started", False):
     st.write("### Instructions:")
     st.write("- Total Questions:", len(questions))
     st.write("- Time: 10 minutes (demo)")
     st.write("- Do not refresh during test")
 
-if st.button("Start Test"):
-    st.session_state.start_time = time.time()
-    st.session_state.submitted = False
-    st.session_state.answers = {}
-    st.session_state.review = {}
-    st.session_state.current_q = 0
-    st.session_state.result_saved = False
-    st.rerun()
+    if st.button("🚀 Start Test"):
+        st.session_state.test_started = True
+        st.session_state.start_time = time.time()
+        st.session_state.current_q = 0
+
+        st.rerun()
 # Refresh page every second
 if st.session_state.start_time is not None and not st.session_state.submitted:
     st_autorefresh(interval=1000, key="timer_refresh")
@@ -208,6 +222,8 @@ remaining = int(TOTAL_TIME - elapsed)
 if remaining <= 0:
     st.session_state.submitted = True
     st.warning("⏰ Time Up! Auto Submitted")
+    st.session_state.test_started = False
+    st.session_state.start_time = None
 
 mins = remaining // 60
 secs = remaining % 60
@@ -230,21 +246,28 @@ col1 = st.container()
 
 # adjust for smaller screens manually
 
+if not st.session_state.submitted:
+    # Default question index
+    if "current_q" not in st.session_state:
+        st.session_state.current_q = 0
 
-# Default question index
-if "current_q" not in st.session_state:
-    st.session_state.current_q = 0
+    # Show current question
+    q = questions[st.session_state.current_q]
 
-# Show current question
-q = questions[st.session_state.current_q]
-
-with col1:
-    # Question number
-    st.markdown(f"### Q{st.session_state.current_q + 1}")
+    with col1:
+        # Question number
+        st.markdown(f"### Q{st.session_state.current_q + 1}")
 
     # Question text
     question_text = q["question"].replace("\n", " ").strip()
     st.markdown(question_text)
+    # Display Question Image
+    if q.get("image"):
+        if os.path.exists(q["image"]):
+            st.image(
+                q["image"],
+                width=450,
+            )
 
     # Options
     options = [opt.replace("\n", " ").strip() for opt in q["options"]]
@@ -341,6 +364,10 @@ confirm_submit = st.checkbox("✅ I have reviewed my answers and want to submit.
 
 if confirm_submit and st.button("🚀 Submit Test"):
     st.session_state.submitted = True
+
+    st.session_state.test_started = False
+
+    st.session_state.start_time = None
 if "result_saved" not in st.session_state:
     st.session_state.result_saved = False
 
