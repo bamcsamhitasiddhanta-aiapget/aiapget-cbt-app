@@ -1,3 +1,4 @@
+import os
 import time
 
 import streamlit as st
@@ -9,14 +10,15 @@ def show_test(
     student_name,
     student_email,
 ):
-    st.error("student_test.py is running")
-    st.title("🧠 AIAPGET CBT Practice Test")
+
+    st.title("AIAPGET-CBT-TEST")
     defaults = {
         "test_state": "home",
         "start_time": None,
         "current_q": 0,
-        "answers": {},
-        "review": {},
+        # NEW
+        "question_state": {},
+        "submitted": False,
         "result_saved": False,
     }
 
@@ -89,10 +91,12 @@ def show_running(
     if q.get("image"):
         if os.path.exists(q["image"]):
             st.image(q["image"], width=450)
-    saved_answer = st.session_state.answers.get(
+    current_state = st.session_state.question_state.get(
         st.session_state.current_q,
-        None,
+        {},
     )
+
+    saved_answer = current_state.get("answer", None)
 
     index = None
 
@@ -106,12 +110,15 @@ def show_running(
         key=f"q_{st.session_state.current_q}",
     )
 
-    st.session_state.answers[st.session_state.current_q] = answer
-
-    st.session_state.answers[st.session_state.current_q] = answer
+    if answer is not None:
+        st.session_state.question_state[st.session_state.current_q] = {
+            "visited": True,
+            "answer": answer,
+            "review": current_state.get("review", False),
+        }
     st.divider()
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     with col1:
         if st.button("⬅ Previous", use_container_width=True):
@@ -120,7 +127,70 @@ def show_running(
                 st.rerun()
 
     with col2:
+        review_text = "⭐ Mark for Review"
+
+        if st.session_state.current_q in st.session_state.review:
+            review_text = "⭐ Remove Review"
+
+        if st.button(review_text, use_container_width=True):
+            if st.session_state.current_q in st.session_state.review:
+                del st.session_state.review[st.session_state.current_q]
+
+            else:
+                st.session_state.review[st.session_state.current_q] = True
+
+            st.rerun()
+
+    with col3:
         if st.button("Next ➡", use_container_width=True):
             if st.session_state.current_q < len(questions) - 1:
                 st.session_state.current_q += 1
+                st.rerun()
+    st.divider()
+
+    st.subheader("🗂 Question Palette")
+
+    NUM_COLS = 5
+
+    for start in range(0, len(questions), NUM_COLS):
+        cols = st.columns(NUM_COLS)
+
+        for i in range(NUM_COLS):
+            q_no = start + i
+
+            if q_no >= len(questions):
+                continue
+
+            state = st.session_state.question_state.get(q_no, {})
+
+            # Current Question
+            if q_no == st.session_state.current_q:
+                icon = "🔵"
+
+            # Answered + Review
+            elif state.get("answer") is not None and state.get("review", False):
+                icon = "🟣🟢"
+
+            # Review
+            elif state.get("review", False):
+                icon = "🟣"
+
+            # Answered
+            elif state.get("answer") is not None:
+                icon = "🟩"
+
+            # Visited but Not Answered
+            elif state.get("visited", False):
+                icon = "🟧"
+
+            # Not Visited
+            else:
+                icon = "⬜"
+
+            if cols[i].button(
+                f"{icon} {q_no + 1}",
+                key=f"palette_{q_no}",
+                use_container_width=True,
+            ):
+                st.session_state.current_q = q_no
                 st.rerun()

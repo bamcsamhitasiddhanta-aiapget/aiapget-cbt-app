@@ -8,6 +8,8 @@ from streamlit_autorefresh import st_autorefresh
 import admin
 import db_utils
 import student_test
+
+print(student_test.__file__)
 from db_utils import login_student, register_student
 
 st.set_page_config(page_title="AIAPGET CBT", layout="wide")
@@ -167,6 +169,7 @@ if selected_subject == "Full Mock Test":
 else:
     questions = [q for q in questions if q["subject"] == selected_subject]
     st.session_state.mock_questions = None
+
 
 student_test.show_test(
     questions=questions,
