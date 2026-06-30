@@ -62,6 +62,72 @@ def show_home(questions):
         st.rerun()
 
 
+def get_question_state(q_no):
+    """Return state for a question."""
+
+    if q_no not in st.session_state.question_state:
+        st.session_state.question_state[q_no] = {
+            "visited": False,
+            "answer": None,
+            "review": False,
+        }
+
+    return st.session_state.question_state[q_no]
+
+
+def save_answer(q_no, answer):
+
+    state = get_question_state(q_no)
+
+    state["visited"] = True
+
+    if answer:
+        state["answer"] = answer
+    else:
+        state["answer"] = None
+
+
+def toggle_review(q_no):
+
+    state = get_question_state(q_no)
+
+    state["visited"] = True
+    state["review"] = not state["review"]
+
+
+def clear_answer(q_no):
+
+    state = get_question_state(q_no)
+
+    state["visited"] = True
+    state["answer"] = None
+
+
+def option_selector(q_no, options):
+
+    state = get_question_state(q_no)
+
+    current = state["answer"]
+
+    selected = None
+
+    for option in options:
+        checked = option == current
+
+        icon = "🔘" if checked else "⚪"
+
+        if st.button(
+            f"{icon} {option}",
+            key=f"option_{q_no}_{option}",
+            use_container_width=False,
+        ):
+            save_answer(q_no, option)
+
+            st.rerun()
+
+    return state["answer"]
+
+
 def show_running(
     questions,
     selected_subject,
@@ -83,6 +149,9 @@ def show_running(
     st.markdown(f"## ⏳ Time Left: {mins}:{secs:02d}")
 
     q = questions[st.session_state.current_q]
+    state = get_question_state(st.session_state.current_q)
+
+    state["visited"] = True
 
     st.markdown(f"## Q{st.session_state.current_q + 1}")
 
@@ -100,25 +169,39 @@ def show_running(
 
     index = None
 
+    # Current question state
+    state = get_question_state(st.session_state.current_q)
+
+    saved_answer = state["answer"]
+
+    index = None
+
     if saved_answer in q["options"]:
         index = q["options"].index(saved_answer)
 
-    answer = st.radio(
-        "",
+    radio_key = f"q_{st.session_state.current_q}"
+
+    # answer = st.radio(
+    #    "",
+    #    q["options"],
+    #    index=index,
+    #    key=radio_key,
+    # )
+
+    # Save only after selection
+    # if answer is not None:
+    #    save_answer(
+    #       st.session_state.current_q,
+    #        answer,
+    #    )
+    answer = option_selector(
+        st.session_state.current_q,
         q["options"],
-        index=index,
-        key=f"q_{st.session_state.current_q}",
     )
 
-    if answer is not None:
-        st.session_state.question_state[st.session_state.current_q] = {
-            "visited": True,
-            "answer": answer,
-            "review": current_state.get("review", False),
-        }
     st.divider()
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4, col5 = st.columns(5)
 
     with col1:
         if st.button("⬅ Previous", use_container_width=True):
@@ -127,25 +210,76 @@ def show_running(
                 st.rerun()
 
     with col2:
-        review_text = "⭐ Mark for Review"
-
-        if st.session_state.current_q in st.session_state.review:
-            review_text = "⭐ Remove Review"
-
-        if st.button(review_text, use_container_width=True):
-            if st.session_state.current_q in st.session_state.review:
-                del st.session_state.review[st.session_state.current_q]
-
-            else:
-                st.session_state.review[st.session_state.current_q] = True
+        if st.button(
+            "🗑 Clear Response",
+            use_container_width=True,
+        ):
+            clear_answer(
+                st.session_state.current_q,
+            )
 
             st.rerun()
 
     with col3:
-        if st.button("Next ➡", use_container_width=True):
+        if st.button(
+            "🟨 Save & Mark Review",
+            use_container_width=True,
+        ):
+            if answer is None:
+                st.warning("⚠ Please select an option.")
+
+            else:
+                save_answer(
+                    st.session_state.current_q,
+                    answer,
+                )
+
+                toggle_review(
+                    st.session_state.current_q,
+                )
+
+                if st.session_state.current_q < len(questions) - 1:
+                    st.session_state.current_q += 1
+
+                st.rerun()
+
+    with col4:
+        if st.button(
+            "💾 Save & Next",
+            use_container_width=True,
+        ):
+            if answer is None:
+                st.warning("⚠ Please select an option.")
+
+            else:
+                save_answer(
+                    st.session_state.current_q,
+                    answer,
+                )
+
+                if st.session_state.current_q < len(questions) - 1:
+                    st.session_state.current_q += 1
+
+                st.rerun()
+    with col5:
+        if st.button(
+            "🟪 Mark Review & Next",
+            use_container_width=True,
+        ):
+            if answer is not None:
+                save_answer(
+                    st.session_state.current_q,
+                    answer,
+                )
+
+            toggle_review(
+                st.session_state.current_q,
+            )
+
             if st.session_state.current_q < len(questions) - 1:
                 st.session_state.current_q += 1
-                st.rerun()
+
+            st.rerun()
     st.divider()
 
     st.subheader("🗂 Question Palette")
@@ -161,19 +295,19 @@ def show_running(
             if q_no >= len(questions):
                 continue
 
-            state = st.session_state.question_state.get(q_no, {})
+            state = get_question_state(q_no)
 
             # Current Question
             if q_no == st.session_state.current_q:
                 icon = "🔵"
 
             # Answered + Review
-            elif state.get("answer") is not None and state.get("review", False):
-                icon = "🟣🟢"
+            elif state["review"] and state["answer"] is not None:
+                icon = "🟪🟩"
 
-            # Review
-            elif state.get("review", False):
-                icon = "🟣"
+            # Review only
+            elif state["review"]:
+                icon = "🟪"
 
             # Answered
             elif state.get("answer") is not None:
