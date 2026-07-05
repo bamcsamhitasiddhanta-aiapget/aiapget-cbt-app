@@ -7,12 +7,16 @@ from streamlit_autorefresh import st_autorefresh
 
 import admin
 import db_utils
+import exam_db
 import student_test
-
-print(student_test.__file__)
 from db_utils import login_student, register_student
 
+print(student_test.__file__)
+
+
 st.set_page_config(page_title="AIAPGET CBT", layout="wide")
+
+exam_db.create_exam_tables()
 # Login state
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -93,6 +97,7 @@ cursor = conn.cursor()
 
 cursor.execute("""
 SELECT
+    question_uid,
     subject,
     question,
     option1,
@@ -113,12 +118,13 @@ questions = []
 for row in rows:
     questions.append(
         {
-            "subject": row[0],
-            "question": row[1],
-            "options": [row[2], row[3], row[4], row[5]],
-            "answer": row[6],
-            "explanation": row[7],
-            "image": row[8],
+            "question_uid": row[0],
+            "subject": row[1],
+            "question": row[2],
+            "options": [row[3], row[4], row[5], row[6]],
+            "answer": row[7],
+            "explanation": row[8],
+            "image": row[9],
         }
     )
 # Get unique subjects

@@ -2,6 +2,13 @@ import os
 import time
 
 import streamlit as st
+from streamlit_autorefresh import st_autorefresh
+
+from exam_db import (
+    create_attempt,
+    finish_attempt,
+    save_response,
+)
 
 
 def show_test(
@@ -20,6 +27,7 @@ def show_test(
         "question_state": {},
         "submitted": False,
         "result_saved": False,
+        "result": None,
     }
 
     for key, value in defaults.items():
@@ -37,6 +45,16 @@ def show_test(
             student_email,
         )
         return
+    if st.session_state.test_state == "confirm_submit":
+        show_submit_confirmation(
+            questions,
+            selected_subject,
+            student_name,
+            student_email,
+        )
+    if st.session_state.test_state == "result":
+        show_result()
+        return
 
 
 def show_home(questions):
@@ -53,6 +71,7 @@ def show_home(questions):
         "🚀 Start Test",
         use_container_width=True,
     ):
+        st.session_state.submitted = False
         st.session_state.test_state = "running"
 
         st.session_state.start_time = time.time()
@@ -134,14 +153,30 @@ def show_running(
     student_name,
     student_email,
 ):
+    if st.session_state.test_state == "running":
+        st_autorefresh(
+            interval=1000,
+            key="exam_timer",
+        )
     # Timer
     if selected_subject == "Full Mock Test":
         total_time = 7200
     else:
-        total_time = 1800
+        total_time = 15
 
     elapsed = time.time() - st.session_state.start_time
     remaining = max(0, int(total_time - elapsed))
+    if remaining <= 0:
+        st.warning("⏰ Time is over. Submitting your test...")
+
+        submit_exam(
+            questions,
+            selected_subject,
+            student_name,
+            student_email,
+        )
+
+        return
 
     mins = remaining // 60
     secs = remaining % 60
@@ -328,3 +363,225 @@ def show_running(
             ):
                 st.session_state.current_q = q_no
                 st.rerun()
+    st.divider()
+    col_submit = st.columns([4, 1])[1]
+
+    with col_submit:
+        if st.button(
+            "🔴 Submit Test",
+            use_container_width=True,
+        ):
+            st.session_state.test_state = "confirm_submit"
+
+            st.rerun()
+
+
+def submit_exam(
+    questions,
+    selected_subject,
+    student_name,
+    student_email,
+):
+    if st.session_state.submitted:
+        return
+
+    st.session_state.submitted = True
+
+    total = len(questions)
+
+    answered = 0
+    review = 0
+    answered_review = 0
+    visited = 0
+
+    for q_no in range(total):
+        state = get_question_state(q_no)
+
+        if state["visited"]:
+            visited += 1
+
+        if state["answer"] is not None:
+            answered += 1
+
+        if state["review"]:
+            review += 1
+
+        if state["review"] and state["answer"] is not None:
+            answered_review += 1
+
+    not_answered = visited - answered
+
+    attempt_id = create_attempt(
+        student_email,
+        student_name,
+        selected_subject,
+        len(questions),
+        answered,
+        not_answered,
+        review,
+        answered_review,
+    )
+
+    st.session_state.attempt_id = attempt_id
+
+    for q_no, q in enumerate(questions):
+        state = get_question_state(q_no)
+
+        selected_answer = state["answer"]
+        correct_answer = q["answer"]
+
+        save_response(
+            attempt_id=attempt_id,
+            question_uid=q["question_uid"],
+            question_no=q_no + 1,
+            subject=q["subject"],
+            selected_answer=selected_answer,
+            correct_answer=correct_answer,
+            is_correct=int(selected_answer == correct_answer),
+            review=state["review"],
+            visited=state["visited"],
+        )
+
+    result = calculate_result(questions)
+
+    duration_seconds = int(time.time() - st.session_state.start_time)
+
+    finish_attempt(
+        attempt_id=attempt_id,
+        answered=result["answered"],
+        not_answered=result["not_answered"],
+        correct=result["correct"],
+        wrong=result["wrong"],
+        score=result["score"],
+        percentage=result["percentage"],
+        duration_seconds=duration_seconds,
+    )
+
+    st.session_state.result = result
+    st.session_state.test_state = "result"
+
+    st.rerun()
+
+
+def show_submit_confirmation(
+    questions,
+    selected_subject,
+    student_name,
+    student_email,
+):
+
+    total = len(questions)
+
+    answered = 0
+    review = 0
+    answered_review = 0
+    visited = 0
+
+    for q_no in range(total):
+        state = get_question_state(q_no)
+
+        if state["visited"]:
+            visited += 1
+
+        if state["answer"] is not None:
+            answered += 1
+
+        if state["review"]:
+            review += 1
+
+        if state["review"] and state["answer"] is not None:
+            answered_review += 1
+
+    not_answered = visited - answered
+
+    not_visited = total - visited
+
+    st.title("Submit Test")
+
+    st.warning("Once submitted you cannot modify your answers.")
+
+    st.write(f"Total Questions : {total}")
+    st.write(f"Answered : {answered}")
+    st.write(f"Not Answered : {not_answered}")
+    st.write(f"Marked for Review : {review}")
+    st.write(f"Answered & Review : {answered_review}")
+    st.write(f"Not Visited : {not_visited}")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button(
+            "⬅ Back to Test",
+            use_container_width=True,
+        ):
+            st.session_state.test_state = "running"
+
+            st.rerun()
+
+    with col2:
+        if st.button(
+            "✅ Submit Final",
+            use_container_width=True,
+        ):
+            submit_exam(
+                questions,
+                selected_subject,
+                student_name,
+                student_email,
+            )
+
+
+def calculate_result(questions):
+
+    correct = 0
+    wrong = 0
+    not_answered = 0
+
+    for q_no, q in enumerate(questions):
+        state = get_question_state(q_no)
+
+        answer = state["answer"]
+
+        if answer is None:
+            not_answered += 1
+
+        elif answer == q["answer"]:
+            correct += 1
+
+        else:
+            wrong += 1
+
+    total = len(questions)
+
+    score = correct
+
+    percentage = round((score / total) * 100, 2)
+
+    return {
+        "answered": correct + wrong,
+        "correct": correct,
+        "wrong": wrong,
+        "not_answered": not_answered,
+        "score": score,
+        "percentage": percentage,
+    }
+
+
+def show_result():
+
+    result = st.session_state.result
+
+    st.title("🎉 AIAPGET CBT RESULT")
+
+    st.metric("Correct", result["correct"])
+    st.metric("Wrong", result["wrong"])
+    st.metric("Not Answered", result["not_answered"])
+    st.metric("Score", result["score"])
+    st.metric("Percentage", f"{result['percentage']}%")
+
+    if st.button("🏠 Back to Home"):
+        st.session_state.test_state = "home"
+        st.session_state.question_state = {}
+        st.session_state.current_q = 0
+        st.session_state.result = None
+        st.rerun()

@@ -64,6 +64,7 @@ def show_admin_dashboard():
                         """
                         INSERT INTO questions
                         (
+                            question_uid,
                             subject,
                             question,
                             option1,
@@ -73,9 +74,10 @@ def show_admin_dashboard():
                             answer,
                             explanation
                         )
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                         (
+                            str(row["Question UID"]),
                             str(row["subject"]),
                             str(row["question"]),
                             str(row["option1"]),
