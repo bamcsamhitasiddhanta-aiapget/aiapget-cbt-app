@@ -128,9 +128,11 @@ for row in rows:
         }
     )
 # Get unique subjects
-subjects = list(set(q["subject"] for q in questions))
-subjects.append("Full Mock Test")
+subjects = sorted(list(set(q["subject"] for q in questions)))
 
+subjects.insert(0, "Select Subject")
+
+subjects.append("Full Mock Test")
 # Single selectbox ONLY
 import random
 
@@ -138,7 +140,7 @@ selected_subject = st.selectbox(
     "Select Subject",
     subjects,
     key="subject_select",
-    disabled=st.session_state.get("test_state") == "running",
+    disabled=st.session_state.get("test_state", "home") != "home",
 )
 # Reset test state when subject changes
 if "last_subject" not in st.session_state:
@@ -476,3 +478,4 @@ if st.session_state.show_leaderboard:
         st.info("No results available yet.")
     else:
         st.dataframe(df, use_container_width=True)
+

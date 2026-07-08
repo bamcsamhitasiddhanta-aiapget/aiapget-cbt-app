@@ -9,6 +9,7 @@ from exam_db import (
     finish_attempt,
     save_response,
 )
+from pages.result import show_result
 
 
 def show_test(
@@ -54,6 +55,9 @@ def show_test(
         )
     if st.session_state.test_state == "result":
         show_result()
+        return
+    if st.session_state.test_state == "review":
+        show_review()
         return
 
 
@@ -153,6 +157,7 @@ def show_running(
     student_name,
     student_email,
 ):
+
     if st.session_state.test_state == "running":
         st_autorefresh(
             interval=1000,
@@ -457,7 +462,14 @@ def submit_exam(
         duration_seconds=duration_seconds,
     )
 
-    st.session_state.result = result
+    st.session_state.result = {
+        "student_name": student_name,
+        "student_email": student_email,
+        "subject": selected_subject,
+        "total_questions": len(questions),
+        "duration_seconds": duration_seconds,
+        **result,
+    }
     st.session_state.test_state = "result"
 
     st.rerun()
@@ -567,21 +579,98 @@ def calculate_result(questions):
     }
 
 
-def show_result():
+def show_review():
 
-    result = st.session_state.result
+    rows = st.session_state.review_data
 
-    st.title("🎉 AIAPGET CBT RESULT")
+    q = rows[st.session_state.review_q]
 
-    st.metric("Correct", result["correct"])
-    st.metric("Wrong", result["wrong"])
-    st.metric("Not Answered", result["not_answered"])
-    st.metric("Score", result["score"])
-    st.metric("Percentage", f"{result['percentage']}%")
+    st.title("📖 Review Answers")
 
-    if st.button("🏠 Back to Home"):
-        st.session_state.test_state = "home"
-        st.session_state.question_state = {}
-        st.session_state.current_q = 0
-        st.session_state.result = None
-        st.rerun()
+    st.write(f"### Question {q[0]}")
+
+    st.info(q[2])
+    st.subheader("Question Palette")
+    cols = st.columns(10)
+
+    for i in range(len(rows)):
+        with cols[i % 10]:
+            if st.button(
+                str(i + 1),
+                key=f"review_{i}",
+                use_container_width=True,
+            ):
+                st.session_state.review_q = i
+                st.rerun()
+
+    # Image (if available)
+    if q[11]:
+        if os.path.exists(q[11]):
+            st.image(q[11], width=450)
+
+    options = [
+        q[3],
+        q[4],
+        q[5],
+        q[6],
+    ]
+
+    student_answer = q[7]
+    correct_answer = q[8]
+
+    st.write("### Options")
+
+    for option in options:
+        if option == correct_answer:
+            st.success(f"✅ {option}")
+
+        elif option == student_answer:
+            st.error(f"❌ {option}")
+
+        else:
+            st.write(f"⚪ {option}")
+
+    st.divider()
+
+    st.subheader("📘 Explanation")
+
+    if q[10]:
+        st.info(q[10])
+    else:
+        st.info("No explanation available.")
+
+    st.divider()
+
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+        if st.button("⬅ Previous"):
+            if st.session_state.review_q > 0:
+                st.session_state.review_q -= 1
+                st.rerun()
+
+    with c2:
+        if st.button(
+            "🏠 Home",
+            use_container_width=True,
+        ):
+            st.session_state.test_state = "home"
+
+            # Reset review
+            st.session_state.review_q = 0
+            st.session_state.review_data = None
+
+            # Reset exam
+            st.session_state.question_state = {}
+            st.session_state.current_q = 0
+            st.session_state.result = None
+            st.session_state.submitted = False
+            st.session_state.start_time = None
+
+            st.rerun()
+
+    with c3:
+        if st.button("Next ➡"):
+            if st.session_state.review_q < len(rows) - 1:
+                st.session_state.review_q += 1
+                st.rerun()

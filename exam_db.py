@@ -239,3 +239,114 @@ def finish_attempt(
 
     conn.commit()
     conn.close()
+
+
+def get_attempt_review(attempt_id):
+
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT
+
+            sr.question_no,
+
+            q.subject,
+            q.question,
+
+            q.option1,
+            q.option2,
+            q.option3,
+            q.option4,
+
+            sr.selected_answer,
+            sr.correct_answer,
+
+            sr.is_correct,
+
+            q.explanation,
+            q.image
+
+        FROM student_responses sr
+
+        JOIN questions q
+
+        ON sr.question_uid = q.question_uid
+
+        WHERE sr.attempt_id=?
+
+        ORDER BY sr.question_no
+        """,
+        (attempt_id,),
+    )
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    return rows
+
+
+def get_student_dashboard(student_email):
+
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    # Overall statistics
+    cursor.execute(
+        """
+        SELECT
+            COUNT(*),
+            MAX(score),
+            AVG(score),
+            AVG(duration_seconds)
+        FROM test_attempts
+        WHERE student_email = ?
+        """,
+        (student_email,),
+    )
+
+    overall = cursor.fetchone()
+
+    # Recent attempts
+    cursor.execute(
+        """
+        SELECT
+            subject,
+            score,
+            percentage,
+            submitted_at
+        FROM test_attempts
+        WHERE student_email = ?
+        ORDER BY attempt_id DESC
+        LIMIT 5
+        """,
+        (student_email,),
+    )
+
+    recent_attempts = cursor.fetchall()
+
+    # Subject performance
+    cursor.execute(
+        """
+        SELECT
+            subject,
+            AVG(percentage)
+        FROM test_attempts
+        WHERE student_email = ?
+        GROUP BY subject
+        ORDER BY subject
+        """,
+        (student_email,),
+    )
+
+    subject_performance = cursor.fetchall()
+
+    conn.close()
+
+    return {
+        "overall": overall,
+        "recent_attempts": recent_attempts,
+        "subject_performance": subject_performance,
+    }
