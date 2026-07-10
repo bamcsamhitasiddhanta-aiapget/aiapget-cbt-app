@@ -298,8 +298,8 @@ def get_student_dashboard(student_email):
         """
         SELECT
             COUNT(*),
-            MAX(score),
-            AVG(score),
+            MAX(percentage),
+            AVG(percentage),
             AVG(duration_seconds)
         FROM test_attempts
         WHERE student_email = ?

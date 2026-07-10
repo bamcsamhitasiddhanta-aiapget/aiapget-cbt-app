@@ -36,7 +36,11 @@ def show_test(
             st.session_state[key] = value
 
     if st.session_state.test_state == "home":
-        show_home(questions)
+        show_home(
+            questions,
+            student_name,
+            student_email,
+        )
         return
     if st.session_state.test_state == "running":
         show_running(
@@ -61,10 +65,71 @@ def show_test(
         return
 
 
-def show_home(questions):
+def format_duration(seconds):
 
-    st.subheader("Instructions")
+    seconds = int(seconds or 0)
 
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    secs = seconds % 60
+
+    if hours:
+        return f"{hours}h {minutes}m"
+
+    return f"{minutes}m {secs}s"
+
+
+def show_home(
+    questions,
+    student_name,
+    student_email,
+):
+
+    from exam_db import get_student_dashboard
+
+    dashboard = get_student_dashboard(student_email)
+
+    overall = dashboard["overall"]
+
+    tests_taken = overall[0] or 0
+    best_accuracy = overall[1] or 0
+    average_accuracy = overall[2] or 0
+    average_time = overall[3] or 0
+    st.title("🏠 AIAPGET CBT")
+
+    st.success(f"👋 Welcome {student_name}")
+
+    st.divider()
+
+    st.subheader("📊 Your Statistics")
+
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+        st.metric(
+            "Tests Taken",
+            tests_taken,
+        )
+
+    with c2:
+        st.metric(
+            "Best Accuracy",
+            f"{best_accuracy:.2f}%",
+        )
+
+    with c3:
+        st.metric(
+            "Average Accuracy",
+            f"{average_accuracy:.2f}%",
+        )
+
+    st.metric(
+        "Average Time",
+        format_duration(average_time),
+    )
+    st.divider()
+
+    st.subheader("📝 Instructions")
     st.write(f"Total Questions : {len(questions)}")
     st.write("Subject Test : 30 Minutes")
     st.write("Full Mock : 2 Hours")

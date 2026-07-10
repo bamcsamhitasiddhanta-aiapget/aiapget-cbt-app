@@ -478,4 +478,3 @@ if st.session_state.show_leaderboard:
         st.info("No results available yet.")
     else:
         st.dataframe(df, use_container_width=True)
-
