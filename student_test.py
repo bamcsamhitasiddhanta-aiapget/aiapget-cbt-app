@@ -103,31 +103,46 @@ def show_home(
 
     st.subheader("📊 Your Statistics")
 
-    c1, c2, c3 = st.columns(3)
+    c1, c2, c3, c4 = st.columns(4)
 
     with c1:
-        st.metric(
-            "Tests Taken",
-            tests_taken,
-        )
+        st.metric("Tests Taken", tests_taken)
 
     with c2:
-        st.metric(
-            "Best Accuracy",
-            f"{best_accuracy:.2f}%",
-        )
+        st.metric("Best Accuracy", f"{best_accuracy:.2f}%")
 
     with c3:
-        st.metric(
-            "Average Accuracy",
-            f"{average_accuracy:.2f}%",
-        )
+        st.metric("Average Accuracy", f"{average_accuracy:.2f}%")
 
-    st.metric(
-        "Average Time",
-        format_duration(average_time),
-    )
+    with c4:
+        st.metric("Average Time", format_duration(average_time))
     st.divider()
+
+    st.subheader("🔥 Recent Attempts")
+    recent_attempts = dashboard["recent_attempts"]
+    if recent_attempts:
+        for attempt in recent_attempts:
+            subject = attempt[0]
+            percentage = attempt[2]
+            submitted = attempt[3]
+
+            if submitted:
+                submitted = submitted[:10]
+
+            st.write(f"📚 **{subject}**  |  🎯 {percentage:.2f}%  |  📅 {submitted}")
+
+    else:
+        st.info("No previous attempts.")
+
+    st.divider()
+
+    st.subheader("📊 Subject Performance")
+
+    subject_performance = dashboard["subject_performance"]
+    for subject, percentage in subject_performance:
+        st.progress(percentage / 100)
+
+        st.write(f"📚 {subject} — {percentage:.2f}%")
 
     st.subheader("📝 Instructions")
     st.write(f"Total Questions : {len(questions)}")
