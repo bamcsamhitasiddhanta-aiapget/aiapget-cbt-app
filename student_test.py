@@ -7,6 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 from exam_db import (
     create_attempt,
     finish_attempt,
+    get_previous_attempts,
     save_response,
 )
 from pages.result import show_result
@@ -60,8 +61,14 @@ def show_test(
     if st.session_state.test_state == "result":
         show_result()
         return
-    if st.session_state.test_state == "review":
-        show_review()
+
+    if st.session_state.test_state == "attempt_review":
+        from pages.attempt_review import show_attempt_review
+
+        show_attempt_review(
+            st.session_state.review_attempt_id,
+        )
+
         return
 
 
@@ -86,6 +93,8 @@ def show_home(
 ):
 
     from exam_db import get_student_dashboard
+
+    previous_attempts = get_previous_attempts(student_email)
 
     dashboard = get_student_dashboard(student_email)
 
@@ -130,6 +139,41 @@ def show_home(
                 submitted = submitted[:10]
 
             st.write(f"📚 **{subject}**  |  🎯 {percentage:.2f}%  |  📅 {submitted}")
+
+    else:
+        st.info("No previous attempts.")
+
+    st.divider()
+
+    st.subheader("📂 Previous Attempts")
+    if previous_attempts:
+        for attempt in previous_attempts:
+            attempt_id = attempt[0]
+            subject = attempt[1]
+            percentage = attempt[2]
+            duration = format_duration(attempt[3])
+            date = attempt[4][:10]
+
+            col1, col2 = st.columns([6, 1])
+
+            with col1:
+                st.write(
+                    f"📚 **{subject}** | "
+                    f"🎯 {percentage:.2f}% | "
+                    f"⏱ {duration} | "
+                    f"📅 {date}"
+                )
+
+            with col2:
+                if st.button(
+                    "👁",
+                    key=f"attempt_{attempt_id}",
+                ):
+                    st.session_state.review_attempt_id = attempt_id
+
+                    st.session_state.test_state = "attempt_review"
+
+                    st.rerun()
 
     else:
         st.info("No previous attempts.")
