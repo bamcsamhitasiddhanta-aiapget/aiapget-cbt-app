@@ -24,14 +24,33 @@ def show_attempt_review(
         st.rerun()
 
     for q in rows:
+        st.caption(f"📚 {q[1]}")
+
+        if q[9]:
+            st.success("✅ Correct")
+        else:
+            st.error("❌ Wrong")
         st.subheader(f"Question {q[0]}")
 
         st.write(q[2])
 
-        st.write("Your Answer :", q[7])
+        options = [
+            q[3],
+            q[4],
+            q[5],
+            q[6],
+        ]
 
-        st.write("Correct Answer :", q[8])
+        for option in options:
+            if option == q[8]:
+                st.success(f"✅ {option}")
 
-        st.write("Explanation :", q[10])
+            elif option == q[7]:
+                st.error(f"❌ {option}")
 
-        st.divider()
+            else:
+                st.write(f"⚪ {option}")
+
+                st.write("Explanation :", q[10])
+
+                st.divider()
