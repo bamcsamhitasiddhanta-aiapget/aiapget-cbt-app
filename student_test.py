@@ -25,11 +25,12 @@ def show_test(
         "test_state": "home",
         "start_time": None,
         "current_q": 0,
-        # NEW
         "question_state": {},
         "submitted": False,
         "result_saved": False,
         "result": None,
+        "review_attempt_id": None,
+        "attempt_review_q": 0,
     }
 
     for key, value in defaults.items():
@@ -63,6 +64,13 @@ def show_test(
         return
 
     if st.session_state.test_state == "attempt_review":
+        if (
+            "review_attempt_id" not in st.session_state
+            or st.session_state.review_attempt_id is None
+        ):
+            st.session_state.test_state = "home"
+            st.rerun()
+
         from pages.attempt_review import show_attempt_review
 
         show_attempt_review(

@@ -3,54 +3,110 @@ import streamlit as st
 from exam_db import get_attempt_review
 
 
-def show_attempt_review(
-    attempt_id,
-):
+def show_attempt_review(attempt_id):
+
     rows = get_attempt_review(attempt_id)
+
+    if not rows:
+        st.error("No questions found for this attempt.")
+        return
+
+    if "attempt_review_q" not in st.session_state:
+        st.session_state.attempt_review_q = 0
+
+    if st.session_state.attempt_review_q >= len(rows):
+        st.session_state.attempt_review_q = 0
 
     st.title("📖 Attempt Review")
     st.write(f"Attempt ID : {attempt_id}")
 
     st.divider()
+
     if st.button(
         "🏠 Back to Dashboard",
         use_container_width=True,
     ):
+        st.session_state.review_attempt_id = None
+        st.session_state.attempt_review_q = 0
         st.session_state.test_state = "home"
-
-        if "review_attempt_id" in st.session_state:
-            del st.session_state.review_attempt_id
-
         st.rerun()
 
-    for q in rows:
-        st.caption(f"📚 {q[1]}")
+    q = rows[st.session_state.attempt_review_q]
 
-        if q[9]:
-            st.success("✅ Correct")
+    st.caption(f"📚 {q[1]}")
+
+    if q[9]:
+        st.success("✅ Correct")
+    else:
+        st.error("❌ Wrong")
+
+    st.subheader(f"Question {st.session_state.attempt_review_q + 1} of {len(rows)}")
+
+    st.write(q[2])
+
+    options = [
+        q[3],
+        q[4],
+        q[5],
+        q[6],
+    ]
+
+    for option in options:
+        if option == q[8]:
+            st.success(f"✅ {option}")
+
+        elif option == q[7]:
+            st.error(f"❌ {option}")
+
         else:
-            st.error("❌ Wrong")
-        st.subheader(f"Question {q[0]}")
+            st.write(f"⚪ {option}")
 
-        st.write(q[2])
+    st.write("### 📘 Explanation")
 
-        options = [
-            q[3],
-            q[4],
-            q[5],
-            q[6],
-        ]
+    st.write(q[10])
 
-        for option in options:
-            if option == q[8]:
-                st.success(f"✅ {option}")
+    st.divider()
 
-            elif option == q[7]:
-                st.error(f"❌ {option}")
+    c1, c2, c3 = st.columns(3)
 
-            else:
-                st.write(f"⚪ {option}")
+    with c1:
+        if st.button("⬅ Previous"):
+            if st.session_state.attempt_review_q > 0:
+                st.session_state.attempt_review_q -= 1
+                st.rerun()
 
-                st.write("Explanation :", q[10])
+    with c2:
+        if st.button("🏠 Home"):
+            st.session_state.review_attempt_id = None
+            st.session_state.attempt_review_q = 0
+            st.session_state.test_state = "home"
+            st.rerun()
 
-                st.divider()
+    with c3:
+        if st.button("Next ➡"):
+            if st.session_state.attempt_review_q < len(rows) - 1:
+                st.session_state.attempt_review_q += 1
+                st.rerun()
+
+    st.divider()
+
+    st.subheader("🗂 Question Palette")
+
+    NUM_COLS = 5
+
+    for start in range(0, len(rows), NUM_COLS):
+        cols = st.columns(NUM_COLS)
+
+        for i in range(NUM_COLS):
+            q_no = start + i
+
+            if q_no >= len(rows):
+                continue
+
+            if cols[i].button(
+                str(q_no + 1),
+                key=f"attempt_palette_{q_no}",
+                use_container_width=True,
+            ):
+                st.session_state.attempt_review_q = q_no
+                st.rerun()
