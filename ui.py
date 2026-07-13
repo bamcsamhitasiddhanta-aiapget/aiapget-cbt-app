@@ -49,3 +49,27 @@ def stat_card(title, value, color="#1565C0"):
         """,
         unsafe_allow_html=True,
     )
+
+
+def question_status(is_correct):
+
+    if is_correct:
+        st.success("✅ Correct")
+    else:
+        st.error("❌ Wrong")
+
+
+def review_option(
+    option,
+    student_answer,
+    correct_answer,
+):
+
+    if option == correct_answer:
+        st.success(f"✅ {option}")
+
+    elif option == student_answer:
+        st.error(f"❌ {option}")
+
+    else:
+        st.write(f"⚪ {option}")

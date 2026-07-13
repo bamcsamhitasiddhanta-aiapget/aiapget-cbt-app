@@ -117,6 +117,12 @@ def show_home(
     st.success(f"👋 Welcome {student_name}")
 
     st.divider()
+    if st.button(
+        "🚪 Logout",
+        use_container_width=True,
+    ):
+        st.session_state.clear()
+        st.rerun()
 
     st.subheader("📊 Your Statistics")
 

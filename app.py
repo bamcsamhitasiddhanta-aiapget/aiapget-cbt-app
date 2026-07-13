@@ -9,7 +9,7 @@ import admin
 import db_utils
 import exam_db
 import student_test
-from db_utils import login_student, register_student
+from db_utils import admin_login, login_student, register_student
 
 print(student_test.__file__)
 
@@ -73,11 +73,13 @@ if not st.session_state.logged_in:
         admin_pass = st.text_input("Admin Password", type="password", key="admin_pass")
 
         if st.button("Admin Login", key="admin_login_btn"):
-            if admin_user == "admin" and admin_pass == "admin123":
+            if admin_login(admin_user, admin_pass):
                 st.session_state.logged_in = True
                 st.session_state.is_admin = True
+
                 st.success("Admin login successful!")
                 st.rerun()
+
             else:
                 st.error("Invalid admin credentials")
     st.stop()

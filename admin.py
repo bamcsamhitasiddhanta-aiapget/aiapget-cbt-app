@@ -4,10 +4,29 @@ import sqlite3
 import pandas as pd
 import streamlit as st
 
+from db_utils import backup_database
+
 
 def show_admin_dashboard():
     st.title("👨‍💼 Admin Dashboard")
     st.write("Welcome, Admin!")
+    st.divider()
+
+    if st.button(
+        "🚪 Admin Logout",
+        use_container_width=True,
+    ):
+        st.session_state.clear()
+        st.rerun()
+    st.divider()
+
+    if st.button(
+        "💾 Backup Database",
+        use_container_width=True,
+    ):
+        backup_file = backup_database()
+
+        st.success(f"Database backed up successfully!\n\n{backup_file}")
 
     # -------------------------------
     # Tabs

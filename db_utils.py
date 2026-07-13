@@ -1,5 +1,8 @@
 import hashlib
+import os
+import shutil
 import sqlite3
+from datetime import datetime
 
 # Create (or open) the database file
 conn = sqlite3.connect("aiapget.db")
@@ -117,3 +120,19 @@ def save_result(name, email, subject, score, total):
 
     conn.commit()
     conn.close()
+
+
+def backup_database():
+
+    os.makedirs("backup", exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    backup_file = f"backup/aiapget_{timestamp}.db"
+
+    shutil.copy2(
+        "aiapget.db",
+        backup_file,
+    )
+
+    return backup_file

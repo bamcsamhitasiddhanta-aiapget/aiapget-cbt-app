@@ -1,6 +1,7 @@
 import streamlit as st
 
 from exam_db import get_attempt_review
+from ui import question_status, review_option
 
 
 def show_attempt_review(attempt_id):
@@ -35,10 +36,7 @@ def show_attempt_review(attempt_id):
 
     st.caption(f"📚 {q[1]}")
 
-    if q[9]:
-        st.success("✅ Correct")
-    else:
-        st.error("❌ Wrong")
+    question_status(q[9])
 
     st.subheader(f"Question {st.session_state.attempt_review_q + 1} of {len(rows)}")
 
@@ -52,14 +50,11 @@ def show_attempt_review(attempt_id):
     ]
 
     for option in options:
-        if option == q[8]:
-            st.success(f"✅ {option}")
-
-        elif option == q[7]:
-            st.error(f"❌ {option}")
-
-        else:
-            st.write(f"⚪ {option}")
+        review_option(
+            option,
+            q[7],
+            q[8],
+        )
 
     st.write("### 📘 Explanation")
 
