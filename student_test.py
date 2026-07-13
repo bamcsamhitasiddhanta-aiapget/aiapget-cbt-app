@@ -116,17 +116,47 @@ def show_home(
     best_accuracy = overall[1] or 0
     average_accuracy = overall[2] or 0
     average_time = overall[3] or 0
+
     st.title("🏠 AIAPGET CBT")
 
     st.success(f"👋 Welcome {student_name}")
 
+    # ==================================================
+    # Instructions
+    # ==================================================
+
     st.divider()
+
+    st.subheader("📝 Instructions")
+
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+        st.metric("Questions", len(questions))
+
+    with c2:
+        st.metric("Subject Test", "30 min")
+
+    with c3:
+        st.metric("Full Mock", "2 hrs")
+
+    st.info("Do not refresh the browser during the examination.")
+
     if st.button(
-        "🚪 Logout",
+        "🚀 Start Test",
         use_container_width=True,
     ):
-        st.session_state.clear()
+        st.session_state.submitted = False
+        st.session_state.test_state = "running"
+        st.session_state.start_time = time.time()
+        st.session_state.current_q = 0
         st.rerun()
+
+    # ==================================================
+    # Statistics
+    # ==================================================
+
+    st.divider()
 
     st.subheader("📊 Your Statistics")
 
@@ -143,10 +173,17 @@ def show_home(
 
     with c4:
         st.metric("Average Time", format_duration(average_time))
+
+    # ==================================================
+    # Recent Attempts
+    # ==================================================
+
     st.divider()
 
     st.subheader("🔥 Recent Attempts")
+
     recent_attempts = dashboard["recent_attempts"]
+
     if recent_attempts:
         for attempt in recent_attempts:
             subject = attempt[0]
@@ -156,21 +193,26 @@ def show_home(
             if submitted:
                 submitted = submitted[:10]
 
-            st.write(f"📚 **{subject}**  |  🎯 {percentage:.2f}%  |  📅 {submitted}")
+            st.write(f"📚 **{subject}** | 🎯 {percentage:.2f}% | 📅 {submitted}")
 
     else:
-        st.info("No previous attempts.")
+        st.info("No recent attempts.")
+
+    # ==================================================
+    # Previous Attempts
+    # ==================================================
 
     st.divider()
 
     st.subheader("📂 Previous Attempts")
+
     if previous_attempts:
         for attempt in previous_attempts:
             attempt_id = attempt[0]
             subject = attempt[1]
             percentage = attempt[2]
             duration = format_duration(attempt[3])
-            date = attempt[4][:10]
+            date = attempt[4][:10] if attempt[4] else "-"
 
             col1, col2 = st.columns([6, 1])
 
@@ -188,42 +230,45 @@ def show_home(
                     key=f"attempt_{attempt_id}",
                 ):
                     st.session_state.review_attempt_id = attempt_id
-
+                    st.session_state.attempt_review_q = 0
                     st.session_state.test_state = "attempt_review"
-
                     st.rerun()
 
     else:
         st.info("No previous attempts.")
 
+    # ==================================================
+    # Subject Performance
+    # ==================================================
+
     st.divider()
 
-    st.subheader("📊 Subject Performance")
+    st.subheader("📈 Subject Performance")
 
     subject_performance = dashboard["subject_performance"]
-    for subject, percentage in subject_performance:
-        st.progress(percentage / 100)
 
-        st.write(f"📚 {subject} — {percentage:.2f}%")
+    if subject_performance:
+        for subject, percentage in subject_performance:
+            st.write(f"📚 {subject}")
 
-    st.subheader("📝 Instructions")
-    st.write(f"Total Questions : {len(questions)}")
-    st.write("Subject Test : 30 Minutes")
-    st.write("Full Mock : 2 Hours")
+            st.progress(percentage / 100)
 
-    st.info("Do not refresh the browser during the examination.")
+            st.caption(f"{percentage:.2f}%")
+
+    else:
+        st.info("No subject performance available.")
+
+    # ==================================================
+    # Logout
+    # ==================================================
+
+    st.divider()
 
     if st.button(
-        "🚀 Start Test",
+        "🚪 Logout",
         use_container_width=True,
     ):
-        st.session_state.submitted = False
-        st.session_state.test_state = "running"
-
-        st.session_state.start_time = time.time()
-
-        st.session_state.current_q = 0
-
+        st.session_state.clear()
         st.rerun()
 
 
@@ -314,14 +359,15 @@ def show_running(
     elapsed = time.time() - st.session_state.start_time
     remaining = max(0, int(total_time - elapsed))
     if remaining <= 0:
-        st.warning("⏰ Time is over. Submitting your test...")
+        if not st.session_state.submitted:
+            st.warning("⏰ Time is over. Submitting your test...")
 
-        submit_exam(
-            questions,
-            selected_subject,
-            student_name,
-            student_email,
-        )
+            submit_exam(
+                questions,
+                selected_subject,
+                student_name,
+                student_email,
+            )
 
         return
 
@@ -529,10 +575,10 @@ def submit_exam(
     student_name,
     student_email,
 ):
-    if st.session_state.submitted:
+    if not st.session_state.submitted:
+        st.session_state.submitted = True
+    else:
         return
-
-    st.session_state.submitted = True
 
     total = len(questions)
 
