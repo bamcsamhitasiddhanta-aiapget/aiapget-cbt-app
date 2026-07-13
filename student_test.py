@@ -63,6 +63,10 @@ def show_test(
         show_result()
         return
 
+    if st.session_state.test_state == "review":
+        show_review()
+        return
+
     if st.session_state.test_state == "attempt_review":
         if (
             "review_attempt_id" not in st.session_state
