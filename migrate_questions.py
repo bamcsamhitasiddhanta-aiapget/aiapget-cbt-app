@@ -1,20 +1,21 @@
-import os
 import json
-import sqlite3
+import os
 
-conn = sqlite3.connect("aiapget.db")
+from database import get_connection
+
+conn = get_connection()
 cursor = conn.cursor()
 
 for filename in os.listdir("questions"):
     if filename.endswith(".json"):
-
         filepath = os.path.join("questions", filename)
 
         with open(filepath, "r", encoding="utf-8") as f:
             questions = json.load(f)
 
         for q in questions:
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO questions
                 (
                     subject,
@@ -27,16 +28,18 @@ for filename in os.listdir("questions"):
                     explanation
                 )
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                q["subject"],
-                q["question"],
-                q["options"][0],
-                q["options"][1],
-                q["options"][2],
-                q["options"][3],
-                q["answer"],
-                q["explanation"]
-            ))
+            """,
+                (
+                    q["subject"],
+                    q["question"],
+                    q["options"][0],
+                    q["options"][1],
+                    q["options"][2],
+                    q["options"][3],
+                    q["answer"],
+                    q["explanation"],
+                ),
+            )
 
 conn.commit()
 conn.close()

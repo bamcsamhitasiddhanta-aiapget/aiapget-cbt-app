@@ -1,11 +1,12 @@
 import hashlib
 import os
 import shutil
-import sqlite3
 from datetime import datetime
 
+from database import get_connection
+
 # Create (or open) the database file
-conn = sqlite3.connect("aiapget.db")
+conn = get_connection()
 
 # Create a cursor to execute SQL commands
 cursor = conn.cursor()
@@ -54,9 +55,8 @@ print("Database and students table created successfully!")
 
 
 def login_student(email, password):
-    import sqlite3
 
-    conn = sqlite3.connect("aiapget.db")
+    conn = get_connection()
     cursor = conn.cursor()
 
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
@@ -73,9 +73,8 @@ def login_student(email, password):
 
 
 def register_student(name, email, password):
-    import sqlite3
 
-    conn = sqlite3.connect("aiapget.db")
+    conn = get_connection()
     cursor = conn.cursor()
 
     # Check if email exists
@@ -105,9 +104,8 @@ def admin_login(username, password):
 
 
 def save_result(name, email, subject, score, total):
-    import sqlite3
 
-    conn = sqlite3.connect("aiapget.db")
+    conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute(

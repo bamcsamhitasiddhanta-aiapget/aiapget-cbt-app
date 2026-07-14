@@ -9,6 +9,7 @@ import admin
 import db_utils
 import exam_db
 import student_test
+from database import get_connection
 from db_utils import admin_login, login_student, register_student
 
 print(student_test.__file__)
@@ -92,9 +93,8 @@ if st.session_state.get("is_admin", False):
 # ====================================================
 # Load questions from folder
 
-import sqlite3
 
-conn = sqlite3.connect("aiapget.db")
+conn = get_connection()
 cursor = conn.cursor()
 
 cursor.execute("""
@@ -421,9 +421,7 @@ if "show_leaderboard" not in st.session_state:
     st.session_state.show_leaderboard = False
 
 if st.button("📋 My Test History"):
-    import sqlite3
-
-    conn = sqlite3.connect("aiapget.db")
+    conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute(
@@ -455,10 +453,7 @@ if st.button("🏆 Show Leaderboard"):
     st.session_state.show_leaderboard = True
 
 if st.session_state.show_leaderboard:
-    import sqlite3
-
-    conn = sqlite3.connect("aiapget.db")
-
+    conn = get_connection()
     query = """
     SELECT
         name AS Student,

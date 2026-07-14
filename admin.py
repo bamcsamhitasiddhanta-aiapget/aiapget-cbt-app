@@ -1,9 +1,9 @@
 import os
-import sqlite3
 
 import pandas as pd
 import streamlit as st
 
+from database import get_connection
 from db_utils import backup_database
 
 
@@ -58,7 +58,7 @@ def show_admin_dashboard():
             st.dataframe(df, use_container_width=True)
 
             if st.button("📥 Import to Database"):
-                conn = sqlite3.connect("aiapget.db")
+                conn = get_connection()
                 cursor = conn.cursor()
 
                 imported = 0
@@ -142,7 +142,7 @@ def show_admin_dashboard():
     with tab2:
         st.subheader("✏️ Manage Questions")
 
-        conn = sqlite3.connect("aiapget.db")
+        conn = get_connection()
         cursor = conn.cursor()
         # -------------------------------
         # Load Subjects
@@ -322,7 +322,7 @@ def show_admin_dashboard():
             st.session_state.add_form_version = 0
         st.subheader("➕ Add New Question")
 
-        conn = sqlite3.connect("aiapget.db")
+        conn = get_connection()
         cursor = conn.cursor()
 
         # -------------------------------
@@ -514,7 +514,7 @@ def show_admin_dashboard():
     # =====================================================
     with tab4:
         st.subheader("📤 Export Questions")
-        conn = sqlite3.connect("aiapget.db")
+        conn = get_connection()
 
         cursor = conn.cursor()
 

@@ -1,6 +1,8 @@
 import sqlite3
 
-conn = sqlite3.connect("aiapget.db")
+from database import get_connection
+
+conn = get_connection()
 cursor = conn.cursor()
 try:
     cursor.execute("""
