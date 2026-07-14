@@ -354,7 +354,7 @@ def show_running(
     if selected_subject == "Full Mock Test":
         total_time = 7200
     else:
-        total_time = 15
+        total_time = 1200
 
     elapsed = time.time() - st.session_state.start_time
     remaining = max(0, int(total_time - elapsed))
