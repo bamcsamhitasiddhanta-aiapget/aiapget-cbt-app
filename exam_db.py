@@ -352,6 +352,53 @@ def get_student_dashboard(student_email):
     }
 
 
+def get_all_students():
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            id,
+            name,
+            email
+        FROM students
+        ORDER BY name
+    """)
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    return rows
+
+
+def get_student_summary(student_email):
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT
+            COUNT(*) AS total_tests,
+            ROUND(AVG(percentage),2) AS average_percentage,
+            MAX(percentage) AS highest_percentage,
+            MAX(submitted_at) AS last_test
+        FROM test_attempts
+        WHERE student_email = ?
+        AND total_questions > 0
+    """,
+        (student_email,),
+    )
+
+    row = cursor.fetchone()
+
+    conn.close()
+
+    return row
+
+
 def get_previous_attempts(student_email):
 
     conn = sqlite3.connect(DB_NAME)

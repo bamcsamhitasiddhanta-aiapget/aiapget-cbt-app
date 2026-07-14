@@ -31,12 +31,13 @@ def show_admin_dashboard():
     # -------------------------------
     # Tabs
     # -------------------------------
-    tab1, tab2, tab3, tab4 = st.tabs(
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(
         [
             "📥 Import Excel",
             "✏️ Manage Questions",
             "➕ Add Question",
             "📤 Export Questions",
+            "👥 Student Performance",
         ]
     )
 
@@ -590,3 +591,55 @@ def show_admin_dashboard():
             )
 
         conn.close()
+
+    # =====================================================
+    # TAB 5 - STUDENT PERFORMANCE
+    # =====================================================
+
+    with tab5:
+        st.subheader("👥 Student Performance")
+
+        from exam_db import (
+            get_all_students,
+            get_student_summary,
+        )
+
+        students = get_all_students()
+
+        search = st.text_input(
+            "🔍 Search Student", placeholder="Enter name or email..."
+        )
+
+        if search:
+            students = [
+                s
+                for s in students
+                if search.lower() in s["name"].lower()
+                or search.lower() in s["email"].lower()
+            ]
+
+        st.subheader("Registered Students")
+
+        if not students:
+            st.info("No students registered.")
+        else:
+            for student in students:
+                summary = get_student_summary(student["email"])
+
+                st.write(
+                    f"""
+            👤 {student["name"]}
+
+            📧 {student["email"]}
+
+            Tests : {summary["total_tests"]}
+
+            Average : {summary["average_percentage"]} %
+
+            Highest : {summary["highest_percentage"]} %
+
+            Last Test : {summary["last_test"]}
+            """
+                )
+
+            st.divider()
