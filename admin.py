@@ -79,6 +79,24 @@ def show_admin_dashboard():
                         skipped += 1
                         continue
 
+                    # Generate Question UID
+                    cursor.execute("""
+                    SELECT question_uid
+                    FROM questions
+                    WHERE question_uid IS NOT NULL
+                    ORDER BY question_uid DESC
+                    LIMIT 1
+                    """)
+
+                    last = cursor.fetchone()
+
+                    if last:
+                        next_no = int(last[0][1:]) + 1
+                    else:
+                        next_no = 1
+
+                    question_uid = f"Q{next_no:06d}"
+
                     cursor.execute(
                         """
                         INSERT INTO questions
@@ -96,15 +114,15 @@ def show_admin_dashboard():
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                         (
-                            str(row["Question UID"]),
-                            str(row["subject"]),
-                            str(row["question"]),
-                            str(row["option1"]),
-                            str(row["option2"]),
-                            str(row["option3"]),
-                            str(row["option4"]),
-                            str(row["answer"]),
-                            str(row["explanation"]),
+                            question_uid,
+                            str(row["subject"]).strip(),
+                            str(row["question"]).strip(),
+                            str(row["option1"]).strip(),
+                            str(row["option2"]).strip(),
+                            str(row["option3"]).strip(),
+                            str(row["option4"]).strip(),
+                            str(row["answer"]).strip(),
+                            str(row["explanation"]).strip(),
                         ),
                     )
 
@@ -419,6 +437,23 @@ def show_admin_dashboard():
                     st.warning("⚠️ Question already exists.")
 
                 else:
+                    # Generate Question UID
+                    cursor.execute("""
+                    SELECT question_uid
+                    FROM questions
+                    WHERE question_uid IS NOT NULL
+                    ORDER BY question_uid DESC
+                    LIMIT 1
+                    """)
+
+                    last = cursor.fetchone()
+
+                    if last:
+                        next_no = int(last[0][1:]) + 1
+                    else:
+                        next_no = 1
+
+                    question_uid = f"Q{next_no:06d}"
                     image_path = ""
 
                     if uploaded_image is not None:
@@ -426,20 +461,17 @@ def show_admin_dashboard():
 
                         extension = uploaded_image.name.split(".")[-1]
 
-                        cursor.execute("SELECT IFNULL(MAX(id),0)+1 FROM questions")
-                        next_id = cursor.fetchone()[0]
-
-                        filename = f"Q{next_id}.{extension}"
+                        filename = f"{question_uid}.{extension}"
 
                         image_path = os.path.join("images", "questions", filename)
 
                         with open(image_path, "wb") as f:
                             f.write(uploaded_image.getbuffer())
-
                     cursor.execute(
                         """
                         INSERT INTO questions
-                        (
+                        (   
+                            question_uid,
                             subject,
                             question,
                             option1,
@@ -450,9 +482,10 @@ def show_admin_dashboard():
                             explanation,
                             image
                         )
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                         (
+                            question_uid,
                             subject.strip(),
                             question.strip(),
                             option1.strip(),
