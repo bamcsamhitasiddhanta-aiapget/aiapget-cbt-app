@@ -1,12 +1,14 @@
 import sqlite3
 from datetime import datetime
 
+from database import get_connection
+
 DB_NAME = "aiapget.db"
 DB_VERSION = 1
 
 
 def create_exam_tables():
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_connection()
     cursor = conn.cursor()
 
     # Exam Attempts
@@ -86,7 +88,7 @@ def create_attempt(
     answered_review,
 ):
 
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute(
@@ -158,7 +160,7 @@ def save_response(
     visited,
 ):
 
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute(
@@ -207,7 +209,7 @@ def finish_attempt(
     duration_seconds,
 ):
 
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute(
@@ -243,7 +245,7 @@ def finish_attempt(
 
 def get_attempt_review(attempt_id):
 
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute(
@@ -290,7 +292,7 @@ def get_attempt_review(attempt_id):
 
 def get_student_dashboard(student_email):
 
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_connection()
     cursor = conn.cursor()
 
     # Overall statistics
@@ -353,7 +355,7 @@ def get_student_dashboard(student_email):
 
 
 def get_all_students():
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
@@ -374,7 +376,7 @@ def get_all_students():
 
 
 def get_student_summary(student_email):
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
@@ -401,7 +403,7 @@ def get_student_summary(student_email):
 
 def get_previous_attempts(student_email):
 
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute(
@@ -428,7 +430,7 @@ def get_previous_attempts(student_email):
 
 def get_attempt_review(attempt_id):
 
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute(
