@@ -33,32 +33,45 @@ def show_attempt_review(attempt_id):
         st.rerun()
 
     q = rows[st.session_state.attempt_review_q]
+    subject = q["subject"]
+    question = q["question"]
 
-    st.caption(f"📚 {q[1]}")
+    option1 = q["option1"]
+    option2 = q["option2"]
+    option3 = q["option3"]
+    option4 = q["option4"]
 
-    question_status(q[9])
+    student_answer = q["selected_answer"]
+    correct_answer = q["correct_answer"]
+
+    is_correct = q["is_correct"]
+    explanation = q["explanation"]
+
+    st.caption(f"📚 {subject}")
+
+    question_status(is_correct)
 
     st.subheader(f"Question {st.session_state.attempt_review_q + 1} of {len(rows)}")
 
-    st.write(q[2])
+    st.write(question)
 
     options = [
-        q[3],
-        q[4],
-        q[5],
-        q[6],
+        option1,
+        option2,
+        option3,
+        option4,
     ]
 
     for option in options:
         review_option(
             option,
-            q[7],
-            q[8],
+            student_answer,
+            correct_answer,
         )
 
     st.write("### 📘 Explanation")
 
-    st.write(q[10])
+    st.write(explanation)
 
     st.divider()
 

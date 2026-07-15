@@ -3,53 +3,64 @@ import os
 import shutil
 from datetime import datetime
 
-from database import get_connection
+from database import (
+    execute,
+    get_connection,
+)
 
 # Create (or open) the database file
-conn = get_connection()
+# conn = get_connection()
 
 # Create a cursor to execute SQL commands
-cursor = conn.cursor()
+# cursor = conn.cursor()
 
 # Create the students table if it doesn't exist
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS students (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL
-)
-""")
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS results (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT NOT NULL,
-    subject TEXT NOT NULL,
-    score INTEGER NOT NULL,
-    total INTEGER NOT NULL,
-    test_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)
-""")
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS questions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    subject TEXT NOT NULL,
-    question TEXT NOT NULL,
-    option1 TEXT NOT NULL,
-    option2 TEXT NOT NULL,
-    option3 TEXT NOT NULL,
-    option4 TEXT NOT NULL,
-    answer TEXT NOT NULL,
-    explanation TEXT
-)
-""")
+# execute(
+# cursor,
+# """
+# CREATE TABLE IF NOT EXISTS students (
+# id INTEGER PRIMARY KEY AUTOINCREMENT,
+# name TEXT NOT NULL,
+# email TEXT UNIQUE NOT NULL,
+# password TEXT NOT NULL
+# )
+# """,
+# )
+# execute(
+# cursor,
+# """
+# CREATE TABLE IF NOT EXISTS results (
+# id INTEGER PRIMARY KEY AUTOINCREMENT,
+# name TEXT NOT NULL,
+# email TEXT NOT NULL,
+# subject TEXT NOT NULL,
+# score INTEGER NOT NULL,
+# total INTEGER NOT NULL,
+# test_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+# )
+# """,
+# )
+# execute(
+# cursor,
+##CREATE TABLE IF NOT EXISTS questions (
+# id INTEGER PRIMARY KEY AUTOINCREMENT,
+# subject TEXT NOT NULL,
+# question TEXT NOT NULL,
+# option1 TEXT NOT NULL,
+# option2 TEXT NOT NULL,
+# option3 TEXT NOT NULL,
+# option4 TEXT NOT NULL,
+# answer TEXT NOT NULL,
+# explanation TEXT
+# )
+# """,
+# )
 
 # Save changes
-conn.commit()
+# conn.commit()
 
 # Close the connection
-conn.close()
+# conn.close()
 
 print("Database and students table created successfully!")
 
@@ -61,8 +72,10 @@ def login_student(email, password):
 
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
-    cursor.execute(
-        "SELECT * FROM students WHERE email=? AND password=?", (email, hashed_password)
+    execute(
+        cursor,
+        "SELECT * FROM students WHERE email=? AND password=?",
+        (email, hashed_password),
     )
 
     student = cursor.fetchone()
@@ -75,11 +88,15 @@ def login_student(email, password):
 def register_student(name, email, password):
 
     conn = get_connection()
+
     cursor = conn.cursor()
 
     # Check if email exists
-    cursor.execute("SELECT * FROM students WHERE email=?", (email,))
-
+    execute(
+        cursor,
+        "SELECT * FROM students WHERE email=?",
+        (email,),
+    )
     if cursor.fetchone():
         conn.close()
         return False
@@ -87,7 +104,8 @@ def register_student(name, email, password):
     # Hash password
     hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
-    cursor.execute(
+    execute(
+        cursor,
         "INSERT INTO students (name, email, password) VALUES (?, ?, ?)",
         (name, email, hashed_password),
     )
@@ -108,9 +126,11 @@ def save_result(name, email, subject, score, total):
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
+    execute(
+        cursor,
         """
-        INSERT INTO results (name, email, subject, score, total)
+        INSERT INTO results
+        (name, email, subject, score, total)
         VALUES (?, ?, ?, ?, ?)
         """,
         (name, email, subject, score, total),

@@ -3,21 +3,29 @@ import time
 
 import pandas as pd
 import streamlit as st
+from dotenv import find_dotenv, load_dotenv
 from streamlit_autorefresh import st_autorefresh
 
 import admin
 import db_utils
-import exam_db
 import student_test
 from database import get_connection
 from db_utils import admin_login, login_student, register_student
+
+dotenv_path = find_dotenv()
+
+st.write("Dotenv path:", dotenv_path)
+
+load_dotenv(dotenv_path, override=True)
+
+st.write("DATABASE_TYPE:", os.getenv("DATABASE_TYPE"))
 
 print(student_test.__file__)
 
 
 st.set_page_config(page_title="AIAPGET CBT", layout="wide")
 
-exam_db.create_exam_tables()
+# exam_db.create_exam_tables()
 # Login state
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -51,8 +59,8 @@ if not st.session_state.logged_in:
 
             if student:
                 st.session_state.logged_in = True
-                st.session_state.student_email = student[2]  # email
-                st.session_state.student_name = student[1]  # name
+                st.session_state.student_email = student["email"]
+                st.session_state.student_name = student["name"]  # name
                 st.success("Login Successful!")
                 st.rerun()
             else:
@@ -120,13 +128,18 @@ questions = []
 for row in rows:
     questions.append(
         {
-            "question_uid": row[0],
-            "subject": row[1],
-            "question": row[2],
-            "options": [row[3], row[4], row[5], row[6]],
-            "answer": row[7],
-            "explanation": row[8],
-            "image": row[9],
+            "question_uid": row["question_uid"],
+            "subject": row["subject"],
+            "question": row["question"],
+            "options": [
+                row["option1"],
+                row["option2"],
+                row["option3"],
+                row["option4"],
+            ],
+            "answer": row["answer"],
+            "explanation": row["explanation"],
+            "image": row["image"],
         }
     )
 # Get unique subjects

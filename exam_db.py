@@ -1,7 +1,7 @@
 import sqlite3
 from datetime import datetime
 
-from database import get_connection
+from database import execute, get_connection
 
 DB_NAME = "aiapget.db"
 DB_VERSION = 1
@@ -12,8 +12,10 @@ def create_exam_tables():
     cursor = conn.cursor()
 
     # Exam Attempts
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS test_attempts (
+    execute(
+        cursor,
+        """
+        CREATE TABLE IF NOT EXISTS test_attempts (
 
         attempt_id INTEGER PRIMARY KEY AUTOINCREMENT,
 
@@ -42,11 +44,14 @@ def create_exam_tables():
 
         duration_seconds INTEGER
     )
-    """)
+    """,
+    )
 
     # Student Responses
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS student_responses (
+    execute(
+        cursor,
+        """
+        CREATE TABLE IF NOT EXISTS student_responses (
 
         response_id INTEGER PRIMARY KEY AUTOINCREMENT,
 
@@ -68,7 +73,8 @@ def create_exam_tables():
         FOREIGN KEY(attempt_id)
         REFERENCES test_attempts(attempt_id)
     )
-    """)
+    """,
+    )
 
     conn.commit()
     conn.close()
@@ -91,7 +97,8 @@ def create_attempt(
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
+    execute(
+        cursor,
         """
         INSERT INTO test_attempts
         (
@@ -119,6 +126,8 @@ def create_attempt(
 
         VALUES
         (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+
+        RETURNING attempt_id
         """,
         (
             student_email,
@@ -139,10 +148,9 @@ def create_attempt(
         ),
     )
 
+    attempt_id = cursor.fetchone()["attempt_id"]
+
     conn.commit()
-
-    attempt_id = cursor.lastrowid
-
     conn.close()
 
     return attempt_id
@@ -163,7 +171,8 @@ def save_response(
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
+    execute(
+        cursor,
         """
         INSERT INTO student_responses
         (
@@ -212,7 +221,8 @@ def finish_attempt(
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
+    execute(
+        cursor,
         """
         UPDATE test_attempts
         SET
@@ -248,7 +258,8 @@ def get_attempt_review(attempt_id):
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
+    execute(
+        cursor,
         """
         SELECT
 
@@ -296,13 +307,14 @@ def get_student_dashboard(student_email):
     cursor = conn.cursor()
 
     # Overall statistics
-    cursor.execute(
+    execute(
+        cursor,
         """
         SELECT
-            COUNT(*),
-            MAX(percentage),
-            AVG(percentage),
-            AVG(duration_seconds)
+            COUNT(*) AS total_tests,
+            MAX(percentage) AS highest_percentage,
+            AVG(percentage) AS average_percentage,
+            AVG(duration_seconds) AS average_duration
         FROM test_attempts
         WHERE student_email = ?
         """,
@@ -312,7 +324,8 @@ def get_student_dashboard(student_email):
     overall = cursor.fetchone()
 
     # Recent attempts
-    cursor.execute(
+    execute(
+        cursor,
         """
         SELECT
             subject,
@@ -330,11 +343,12 @@ def get_student_dashboard(student_email):
     recent_attempts = cursor.fetchall()
 
     # Subject performance
-    cursor.execute(
+    execute(
+        cursor,
         """
         SELECT
             subject,
-            AVG(percentage)
+            AVG(percentage) AS average_percentage
         FROM test_attempts
         WHERE student_email = ?
         GROUP BY subject
@@ -359,14 +373,17 @@ def get_all_students():
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
-    cursor.execute("""
+    execute(
+        cursor,
+        """
         SELECT
             id,
             name,
             email
         FROM students
         ORDER BY name
-    """)
+    """,
+    )
 
     rows = cursor.fetchall()
 
@@ -380,7 +397,8 @@ def get_student_summary(student_email):
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
-    cursor.execute(
+    execute(
+        cursor,
         """
         SELECT
             COUNT(*) AS total_tests,
@@ -406,7 +424,8 @@ def get_previous_attempts(student_email):
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
+    execute(
+        cursor,
         """
         SELECT
             attempt_id,
@@ -419,42 +438,6 @@ def get_previous_attempts(student_email):
         ORDER BY attempt_id DESC
         """,
         (student_email,),
-    )
-
-    rows = cursor.fetchall()
-
-    conn.close()
-
-    return rows
-
-
-def get_attempt_review(attempt_id):
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        SELECT
-            sr.question_no,
-            sr.subject,
-            q.question,
-            q.option1,
-            q.option2,
-            q.option3,
-            q.option4,
-            sr.selected_answer,
-            sr.correct_answer,
-            sr.is_correct,
-            q.explanation,
-            q.image
-        FROM student_responses sr
-        JOIN questions q
-        ON sr.question_uid = q.question_uid
-        WHERE sr.attempt_id = ?
-        ORDER BY sr.question_no
-        """,
-        (attempt_id,),
     )
 
     rows = cursor.fetchall()

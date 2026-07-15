@@ -2,7 +2,6 @@ import os
 import time
 
 import streamlit as st
-from streamlit_autorefresh import st_autorefresh
 
 from exam_db import (
     create_attempt,
@@ -112,10 +111,10 @@ def show_home(
 
     overall = dashboard["overall"]
 
-    tests_taken = overall[0] or 0
-    best_accuracy = overall[1] or 0
-    average_accuracy = overall[2] or 0
-    average_time = overall[3] or 0
+    tests_taken = overall.get("total_tests", 0) or 0
+    best_accuracy = float(overall.get("highest_percentage", 0) or 0)
+    average_accuracy = float(overall.get("average_percentage", 0) or 0)
+    average_time = int(overall.get("average_duration", 0) or 0)
 
     st.title("🏠 AIAPGET CBT")
 
@@ -186,10 +185,10 @@ def show_home(
 
     if recent_attempts:
         for attempt in recent_attempts:
-            subject = attempt[0]
-            percentage = attempt[2]
-            submitted = attempt[3]
-
+            subject = attempt["subject"]
+            score = attempt["score"]
+            percentage = attempt["percentage"]
+            submitted = attempt["submitted_at"]
             if submitted:
                 submitted = submitted[:10]
 
@@ -208,11 +207,11 @@ def show_home(
 
     if previous_attempts:
         for attempt in previous_attempts:
-            attempt_id = attempt[0]
-            subject = attempt[1]
-            percentage = attempt[2]
-            duration = format_duration(attempt[3])
-            date = attempt[4][:10] if attempt[4] else "-"
+            attempt_id = attempt["attempt_id"]
+            subject = attempt["subject"]
+            percentage = attempt["percentage"]
+            duration = format_duration(attempt["duration_seconds"])
+            date = attempt["submitted_at"][:10] if attempt["submitted_at"] else "-"
 
             col1, col2 = st.columns([6, 1])
 
@@ -248,7 +247,9 @@ def show_home(
     subject_performance = dashboard["subject_performance"]
 
     if subject_performance:
-        for subject, percentage in subject_performance:
+        for row in subject_performance:
+            subject = row["subject"]
+            percentage = float(row["average_percentage"])
             st.write(f"📚 {subject}")
 
             st.progress(percentage / 100)
@@ -319,11 +320,28 @@ def option_selector(q_no, options):
 
     current = state["answer"]
 
-    selected = None
+    for option in options:
+        checked = option == current
+        icon = "🔘" if checked else "⚪"
+
+        if st.button(
+            f"{icon} {option}",
+            key=f"option_{q_no}_{option}",
+        ):
+            st.success("CLICKED")
+            return option
+
+    return current
+
+
+def option_selector(q_no, options):
+
+    state = get_question_state(q_no)
+
+    current = state["answer"]
 
     for option in options:
         checked = option == current
-
         icon = "🔘" if checked else "⚪"
 
         if st.button(
@@ -332,7 +350,6 @@ def option_selector(q_no, options):
             use_container_width=False,
         ):
             save_answer(q_no, option)
-
             st.rerun()
 
     return state["answer"]
@@ -346,18 +363,23 @@ def show_running(
 ):
 
     if st.session_state.test_state == "running":
-        st_autorefresh(
-            interval=1000,
-            key="exam_timer",
-        )
-    # Timer
+        pass
+        # st_autorefresh(
+        # interval=1000,
+        # key="exam_timer",
+        # )
+        # Timer
+    total_time = 1200
+
     if selected_subject == "Full Mock Test":
         total_time = 7200
-    else:
-        total_time = 1200
+    if st.session_state.start_time is None:
+        st.session_state.start_time = time.time()
 
     elapsed = time.time() - st.session_state.start_time
     remaining = max(0, int(total_time - elapsed))
+    st.write("selected_subject =", repr(selected_subject))
+    st.write("test_state =", st.session_state.test_state)
     if remaining <= 0:
         if not st.session_state.submitted:
             st.warning("⏰ Time is over. Submitting your test...")
@@ -755,7 +777,10 @@ def calculate_result(questions):
 
     score = correct
 
-    percentage = round((score / total) * 100, 2)
+    if total == 0:
+        percentage = 0
+    else:
+        percentage = round((score / total) * 100, 2)
 
     return {
         "answered": correct + wrong,
@@ -775,10 +800,12 @@ def show_review():
 
     st.title("📖 Review Answers")
 
-    st.write(f"### Question {q[0]}")
+    st.write(f"### Question {q['question_no']}")
 
-    st.info(q[2])
+    st.info(q["question"])
+
     st.subheader("Question Palette")
+
     cols = st.columns(10)
 
     for i in range(len(rows)):
@@ -791,20 +818,20 @@ def show_review():
                 st.session_state.review_q = i
                 st.rerun()
 
-    # Image (if available)
-    if q[11]:
-        if os.path.exists(q[11]):
-            st.image(q[11], width=450)
+    # Image
+    if q["image"]:
+        if os.path.exists(q["image"]):
+            st.image(q["image"], width=450)
 
     options = [
-        q[3],
-        q[4],
-        q[5],
-        q[6],
+        q["option1"],
+        q["option2"],
+        q["option3"],
+        q["option4"],
     ]
 
-    student_answer = q[7]
-    correct_answer = q[8]
+    student_answer = q["selected_answer"]
+    correct_answer = q["correct_answer"]
 
     st.write("### Options")
 
@@ -822,8 +849,8 @@ def show_review():
 
     st.subheader("📘 Explanation")
 
-    if q[10]:
-        st.info(q[10])
+    if q["explanation"]:
+        st.info(q["explanation"])
     else:
         st.info("No explanation available.")
 
@@ -844,11 +871,9 @@ def show_review():
         ):
             st.session_state.test_state = "home"
 
-            # Reset review
             st.session_state.review_q = 0
             st.session_state.review_data = None
 
-            # Reset exam
             st.session_state.question_state = {}
             st.session_state.current_q = 0
             st.session_state.result = None
