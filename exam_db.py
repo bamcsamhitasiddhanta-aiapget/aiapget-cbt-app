@@ -1,4 +1,3 @@
-import sqlite3
 from datetime import datetime
 
 from database import execute, get_connection
@@ -369,8 +368,8 @@ def get_student_dashboard(student_email):
 
 
 def get_all_students():
+
     conn = get_connection()
-    conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
     execute(
@@ -382,7 +381,7 @@ def get_all_students():
             email
         FROM students
         ORDER BY name
-    """,
+        """,
     )
 
     rows = cursor.fetchall()
@@ -394,7 +393,7 @@ def get_all_students():
 
 def get_student_summary(student_email):
     conn = get_connection()
-    conn.row_factory = sqlite3.Row
+
     cursor = conn.cursor()
 
     execute(
@@ -402,7 +401,7 @@ def get_student_summary(student_email):
         """
         SELECT
             COUNT(*) AS total_tests,
-            ROUND(AVG(percentage),2) AS average_percentage,
+            ROUND(AVG(percentage)::numeric, 2) AS average_percentage,
             MAX(percentage) AS highest_percentage,
             MAX(submitted_at) AS last_test
         FROM test_attempts

@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import streamlit as st
 
-from database import get_connection
+from database import execute, get_connection
 from db_utils import backup_database
 
 
@@ -65,40 +65,45 @@ def show_admin_dashboard():
                 skipped = 0
 
                 for _, row in df.iterrows():
-                    cursor.execute(
+                    execute(
+                        cursor,
                         """
-                        SELECT COUNT(*)
+                        SELECT COUNT(*) AS count
                         FROM questions
                         WHERE LOWER(question)=LOWER(?)
                         """,
                         (str(row["question"]).strip(),),
                     )
 
-                    exists = cursor.fetchone()[0]
+                    exists = cursor.fetchone()["count"]
 
                     if exists:
                         skipped += 1
                         continue
 
                     # Generate Question UID
-                    cursor.execute("""
+                    execute(
+                        cursor,
+                        """
                     SELECT question_uid
                     FROM questions
                     WHERE question_uid IS NOT NULL
                     ORDER BY question_uid DESC
                     LIMIT 1
-                    """)
+                    """,
+                    )
 
                     last = cursor.fetchone()
 
                     if last:
-                        next_no = int(last[0][1:]) + 1
+                        next_no = int(last["question_uid"][1:]) + 1
                     else:
                         next_no = 1
 
                     question_uid = f"Q{next_no:06d}"
 
-                    cursor.execute(
+                    execute(
+                        cursor,
                         """
                         INSERT INTO questions
                         (
@@ -147,13 +152,16 @@ def show_admin_dashboard():
         # -------------------------------
         # Load Subjects
         # -------------------------------
-        cursor.execute("""
+        execute(
+            cursor,
+            """
             SELECT DISTINCT subject
             FROM questions
             ORDER BY subject
-        """)
+        """,
+        )
 
-        subjects = [row[0] for row in cursor.fetchall()]
+        subjects = [row["subject"] for row in cursor.fetchall()]
 
         if not subjects:
             st.warning("No subjects found in database.")
@@ -166,7 +174,8 @@ def show_admin_dashboard():
 
             search_text = st.text_input("🔍 Search Question", key="manage_search")
 
-            cursor.execute(
+            execute(
+                cursor,
                 """
                 SELECT id, question
                 FROM questions
@@ -184,7 +193,8 @@ def show_admin_dashboard():
 
             else:
                 question_dict = {
-                    f"{qid}: {qtext[:80]}": qid for qid, qtext in question_rows
+                    f"{row['id']}: {row['question'][:80]}": row["id"]
+                    for row in question_rows
                 }
 
                 selected = st.selectbox(
@@ -193,7 +203,8 @@ def show_admin_dashboard():
 
                 question_id = question_dict[selected]
 
-                cursor.execute(
+                execute(
+                    cursor,
                     """
                     SELECT
                         question,
@@ -211,35 +222,44 @@ def show_admin_dashboard():
                 )
 
                 row = cursor.fetchone()
-                if row[7]:
-                    if os.path.exists(row[7]):
+
+                if row["image"]:
+                    if os.path.exists(row["image"]):
                         st.image(
-                            row[7],
+                            row["image"],
                             width=350,
                             caption="Question Image",
                         )
 
                 question = st.text_area(
                     "Question",
-                    value=row[0],
+                    value=row["question"],
                     height=120,
                     key=f"edit_question_{question_id}",
                 )
 
                 option1 = st.text_input(
-                    "Option 1", value=row[1], key=f"edit_option1_{question_id}"
+                    "Option 1",
+                    value=row["option1"],
+                    key=f"edit_option1_{question_id}",
                 )
 
                 option2 = st.text_input(
-                    "Option 2", value=row[2], key=f"edit_option2_{question_id}"
+                    "Option 2",
+                    value=row["option2"],
+                    key=f"edit_option2_{question_id}",
                 )
 
                 option3 = st.text_input(
-                    "Option 3", value=row[3], key=f"edit_option3_{question_id}"
+                    "Option 3",
+                    value=row["option3"],
+                    key=f"edit_option3_{question_id}",
                 )
 
                 option4 = st.text_input(
-                    "Option 4", value=row[4], key=f"edit_option4_{question_id}"
+                    "Option 4",
+                    value=row["option4"],
+                    key=f"edit_option4_{question_id}",
                 )
 
                 options = [
@@ -249,8 +269,8 @@ def show_admin_dashboard():
                     option4,
                 ]
 
-                if row[5] in options:
-                    index = options.index(row[5])
+                if row["answer"] in options:
+                    index = options.index(row["answer"])
                 else:
                     index = 0
 
@@ -263,16 +283,16 @@ def show_admin_dashboard():
 
                 explanation = st.text_area(
                     "Explanation",
-                    value=row[6],
+                    value=row["explanation"],
                     height=100,
                     key=f"edit_explanation_{question_id}",
                 )
-
                 col1, col2 = st.columns(2)
 
                 with col1:
                     if st.button("💾 Save Changes", key="save_question"):
-                        cursor.execute(
+                        execute(
+                            cursor,
                             """
                             UPDATE questions
                             SET
@@ -303,8 +323,8 @@ def show_admin_dashboard():
 
                 with col2:
                     if st.button("🗑️ Delete Question", key="delete_question"):
-                        cursor.execute(
-                            "DELETE FROM questions WHERE id=?", (question_id,)
+                        execute(
+                            cursor, "DELETE FROM questions WHERE id=?", (question_id,)
                         )
 
                         conn.commit()
@@ -328,12 +348,15 @@ def show_admin_dashboard():
         # -------------------------------
         # Existing Subjects
         # -------------------------------
-        cursor.execute("""
+        execute(
+            cursor,
+            """
             SELECT DISTINCT subject
             FROM questions
             ORDER BY subject
-        """)
-        subjects = [row[0] for row in cursor.fetchall()]
+        """,
+        )
+        subjects = [row["subject"] for row in cursor.fetchall()]
 
         subject_type = st.radio(
             "Subject", ["Existing Subject", "New Subject"], horizontal=True
@@ -423,34 +446,38 @@ def show_admin_dashboard():
                 st.error("Please fill all fields.")
 
             else:
-                cursor.execute(
+                execute(
+                    cursor,
                     """
-                    SELECT COUNT(*)
+                    SELECT COUNT(*) AS count
                     FROM questions
                     WHERE LOWER(question)=LOWER(?)
                     """,
                     (question.strip(),),
                 )
 
-                exists = cursor.fetchone()[0]
+                exists = cursor.fetchone()["count"]
 
                 if exists:
                     st.warning("⚠️ Question already exists.")
 
                 else:
                     # Generate Question UID
-                    cursor.execute("""
-                    SELECT question_uid
-                    FROM questions
-                    WHERE question_uid IS NOT NULL
-                    ORDER BY question_uid DESC
-                    LIMIT 1
-                    """)
+                    execute(
+                        cursor,
+                        """
+                        SELECT question_uid
+                        FROM questions
+                        WHERE question_uid IS NOT NULL
+                        ORDER BY question_uid DESC
+                        LIMIT 1
+                    """,
+                    )
 
                     last = cursor.fetchone()
 
                     if last:
-                        next_no = int(last[0][1:]) + 1
+                        next_no = int(last["question_uid"][1:]) + 1
                     else:
                         next_no = 1
 
@@ -468,7 +495,8 @@ def show_admin_dashboard():
 
                         with open(image_path, "wb") as f:
                             f.write(uploaded_image.getbuffer())
-                    cursor.execute(
+                    execute(
+                        cursor,
                         """
                         INSERT INTO questions
                         (   
@@ -518,13 +546,16 @@ def show_admin_dashboard():
 
         cursor = conn.cursor()
 
-        cursor.execute("""
+        execute(
+            cursor,
+            """
         SELECT DISTINCT subject
         FROM questions
         ORDER BY subject
-        """)
+        """,
+        )
 
-        subjects = [row[0] for row in cursor.fetchall()]
+        subjects = [row["subject"] for row in cursor.fetchall()]
         export_type = st.radio(
             "Export Type",
             ["All Subjects", "Selected Subject"],
@@ -548,7 +579,15 @@ def show_admin_dashboard():
                  ORDER BY id
              """
 
-            df = pd.read_sql_query(query, conn, params=(selected_subject,))
+            execute(
+                cursor,
+                query,
+                (selected_subject,),
+            )
+
+            rows = cursor.fetchall()
+
+            df = pd.DataFrame([dict(row) for row in rows])
 
         else:
             query = """
@@ -565,7 +604,14 @@ def show_admin_dashboard():
                 ORDER BY subject,id
             """
 
-            df = pd.read_sql_query(query, conn)
+            execute(
+                cursor,
+                query,
+            )
+
+            rows = cursor.fetchall()
+
+            df = pd.DataFrame([dict(row) for row in rows])
         st.success(f"Total Questions : {len(df)}")
 
         st.dataframe(
