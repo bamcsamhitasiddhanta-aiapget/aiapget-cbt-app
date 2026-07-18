@@ -5,6 +5,8 @@ import psycopg
 from dotenv import find_dotenv, load_dotenv
 from psycopg.rows import dict_row
 
+from developer_monitor import *
+
 dotenv_path = find_dotenv()
 
 print("DOTENV PATH:", dotenv_path)
@@ -20,22 +22,26 @@ DB_NAME = os.getenv("DB_NAME", "aiapget.db")
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 
+import time
+
+
 def get_connection():
 
-    print("DATABASE_TYPE =", DATABASE_TYPE)
-    print("DATABASE_URL =", DATABASE_URL[:30] + "..." if DATABASE_URL else "None")
+    increment_connection()
+
+    start = time.perf_counter()
 
     if DATABASE_TYPE == "postgres":
-        print("CONNECTING TO POSTGRES")
-        return psycopg.connect(
+        conn = psycopg.connect(
             DATABASE_URL,
             row_factory=dict_row,
         )
+    else:
+        conn = sqlite3.connect(DB_NAME)
+        conn.row_factory = sqlite3.Row
 
-    print("CONNECTING TO SQLITE")
+    print(f"Connection opened in {time.perf_counter() - start:.4f} sec")
 
-    conn = sqlite3.connect(DB_NAME)
-    conn.row_factory = sqlite3.Row
     return conn
 
 
@@ -49,5 +55,9 @@ def adapt_query(query):
 
 
 def execute(cursor, query, params=()):
+
+    increment_query()
+
     query = adapt_query(query)
+
     return cursor.execute(query, params)
