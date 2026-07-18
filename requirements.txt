@@ -2,3 +2,7 @@ streamlit
 pandas
 streamlit-autorefresh
 openpyxl
+psycopg
+psycopg-binary
+pillow
+bcrypt

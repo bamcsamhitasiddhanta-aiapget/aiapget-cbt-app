@@ -109,7 +109,12 @@ def show_home(
 
     dashboard = get_student_dashboard(student_email)
 
-    overall = dashboard["overall"]
+    overall = dashboard.get("overall")
+
+    if overall is None:
+        overall = {}
+    elif not isinstance(overall, dict):
+        overall = dict(overall)
 
     tests_taken = overall.get("total_tests", 0) or 0
     best_accuracy = float(overall.get("highest_percentage", 0) or 0)

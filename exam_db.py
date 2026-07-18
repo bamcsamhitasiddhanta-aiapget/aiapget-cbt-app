@@ -320,8 +320,9 @@ def get_student_dashboard(student_email):
         (student_email,),
     )
 
+    # Overall statistics
     overall = cursor.fetchone()
-
+    overall = dict(overall) if overall else {}
     # Recent attempts
     execute(
         cursor,
@@ -339,8 +340,9 @@ def get_student_dashboard(student_email):
         (student_email,),
     )
 
+    # Recent attempts
     recent_attempts = cursor.fetchall()
-
+    recent_attempts = [dict(row) for row in recent_attempts]
     # Subject performance
     execute(
         cursor,
@@ -356,8 +358,9 @@ def get_student_dashboard(student_email):
         (student_email,),
     )
 
+    # Subject performance
     subject_performance = cursor.fetchall()
-
+    subject_performance = [dict(row) for row in subject_performance]
     conn.close()
 
     return {
