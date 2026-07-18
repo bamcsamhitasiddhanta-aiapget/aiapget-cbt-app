@@ -99,6 +99,7 @@ def format_duration(seconds):
 
 def show_home(
     questions,
+    selected_subject,
     student_name,
     student_email,
 ):
@@ -146,10 +147,13 @@ def show_home(
 
     st.info("Do not refresh the browser during the examination.")
 
-    if st.button(
+    start_clicked = st.button(
         "🚀 Start Test",
         use_container_width=True,
-    ):
+        disabled=(selected_subject is None),
+    )
+
+    if start_clicked:
         st.session_state.submitted = False
         st.session_state.test_state = "running"
         st.session_state.start_time = time.time()

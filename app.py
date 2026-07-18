@@ -151,20 +151,20 @@ for row in rows:
         }
     )
 # Get unique subjects
-subjects = sorted(list(set(q["subject"] for q in questions)))
-
-subjects.insert(0, "Select Subject")
-
+subjects = sorted({q["subject"] for q in questions})
 subjects.append("Full Mock Test")
-# Single selectbox ONLY
+
 import random
 
 selected_subject = st.selectbox(
     "Select Subject",
     subjects,
+    index=None,
+    placeholder="Select Subject",
     key="subject_select",
     disabled=st.session_state.get("test_state", "home") != "home",
 )
+
 # Reset test state when subject changes
 if "last_subject" not in st.session_state:
     st.session_state.last_subject = selected_subject
@@ -186,7 +186,10 @@ if st.session_state.last_subject != selected_subject:
     st.rerun()
 
 # Filter logic
-if selected_subject == "Full Mock Test":
+if selected_subject is None:
+    questions = []
+
+elif selected_subject == "Full Mock Test":
     if (
         "mock_questions" not in st.session_state
         or st.session_state.mock_questions is None
