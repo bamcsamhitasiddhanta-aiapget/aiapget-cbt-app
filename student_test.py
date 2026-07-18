@@ -39,6 +39,7 @@ def show_test(
     if st.session_state.test_state == "home":
         show_home(
             questions,
+            selected_subject,
             student_name,
             student_email,
         )
