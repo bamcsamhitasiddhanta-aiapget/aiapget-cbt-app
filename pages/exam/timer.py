@@ -18,8 +18,7 @@ def render_timer(selected_subject):
     if st.session_state.start_time is None:
         st.session_state.start_time = time.time()
 
-    elapsed = time.time() - st.session_state.start_time
-    remaining = max(0, int(total_time - elapsed))
+    remaining = max(0, int(st.session_state.end_time - time.time()))
 
     mins = remaining // 60
     secs = remaining % 60
