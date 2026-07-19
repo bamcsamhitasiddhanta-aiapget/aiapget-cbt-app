@@ -20,8 +20,6 @@ def render_timer(selected_subject):
 
     remaining = max(0, int(st.session_state.end_time - time.time()))
 
-    from streamlit.components.v1 import html
-
     mins = remaining // 60
     secs = remaining % 60
 
@@ -36,12 +34,33 @@ def render_timer(selected_subject):
     background:#f8f9fa;
     border:2px solid #4CAF50;
     color:#2E7D32;
-    margin-bottom:20px;
     ">
-    ⏳ Time Left: {mins:02d}:{secs:02d}
+    ⏳ Time Left: <span id="countdown">{remaining}</span>
     </div>
-    """
 
-    html(timer_html, height=90)
+    <script>
+
+    let remaining = {remaining};
+
+    function updateTimer() {{
+
+        let mins = Math.floor(remaining / 60);
+        let secs = remaining % 60;
+
+        document.getElementById("countdown").innerHTML =
+            mins.toString().padStart(2,"0") + ":" +
+            secs.toString().padStart(2,"0");
+
+        remaining--;
+
+    }}
+
+    updateTimer();
+
+    setInterval(updateTimer,1000);
+
+    </script>
+    """
+    html(timer_html, height=110)
 
     return remaining
