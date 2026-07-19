@@ -20,9 +20,28 @@ def render_timer(selected_subject):
 
     remaining = max(0, int(st.session_state.end_time - time.time()))
 
+    from streamlit.components.v1 import html
+
     mins = remaining // 60
     secs = remaining % 60
 
-    st.markdown(f"## ⏳ Time Left: {mins}:{secs:02d}")
+    timer_html = f"""
+    <div id="timer"
+    style="
+    font-size:40px;
+    font-weight:bold;
+    text-align:center;
+    padding:15px;
+    border-radius:10px;
+    background:#f8f9fa;
+    border:2px solid #4CAF50;
+    color:#2E7D32;
+    margin-bottom:20px;
+    ">
+    ⏳ Time Left: {mins:02d}:{secs:02d}
+    </div>
+    """
+
+    html(timer_html, height=90)
 
     return remaining
