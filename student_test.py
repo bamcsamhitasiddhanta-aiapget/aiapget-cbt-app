@@ -9,6 +9,7 @@ from exam_db import (
     get_previous_attempts,
     save_response,
 )
+from pages.exam.timer import render_timer
 from pages.result import show_result
 
 
@@ -379,34 +380,7 @@ def show_running(
         # key="exam_timer",
         # )
         # Timer
-    total_time = 1200
-
-    if selected_subject == "Full Mock Test":
-        total_time = 7200
-    if st.session_state.start_time is None:
-        st.session_state.start_time = time.time()
-
-    elapsed = time.time() - st.session_state.start_time
-    remaining = max(0, int(total_time - elapsed))
-    st.write("selected_subject =", repr(selected_subject))
-    st.write("test_state =", st.session_state.test_state)
-    if remaining <= 0:
-        if not st.session_state.submitted:
-            st.warning("⏰ Time is over. Submitting your test...")
-
-            submit_exam(
-                questions,
-                selected_subject,
-                student_name,
-                student_email,
-            )
-
-        return
-
-    mins = remaining // 60
-    secs = remaining % 60
-
-    st.markdown(f"## ⏳ Time Left: {mins}:{secs:02d}")
+    remaining = render_timer(selected_subject)
 
     q = questions[st.session_state.current_q]
     state = get_question_state(st.session_state.current_q)
