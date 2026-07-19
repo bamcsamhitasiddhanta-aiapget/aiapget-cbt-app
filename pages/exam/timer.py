@@ -1,6 +1,7 @@
 import time
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 
 def render_timer(selected_subject):
@@ -61,6 +62,5 @@ def render_timer(selected_subject):
 
     </script>
     """
-    html(timer_html, height=110)
-
+    components.html(timer_html, height=110)
     return remaining
