@@ -161,7 +161,7 @@ def show_home(
         st.session_state.test_state = "running"
         st.session_state.start_time = time.time()
 
-        total_time = 7200 if selected_subject == "Full Mock Test" else 1200
+        total_time = 7200 if selected_subject == "Full Mock Test" else 30
 
         st.session_state.end_time = st.session_state.start_time + total_time
 
