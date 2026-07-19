@@ -10,14 +10,11 @@ def render_timer(selected_subject):
     """
 
     # Exam duration
-    total_time = 1200
-
-    if selected_subject == "Full Mock Test":
-        total_time = 7200
 
     # Initialize start time
-    if st.session_state.start_time is None:
-        st.session_state.start_time = time.time()
+    if st.session_state.end_time is None:
+        st.error("Exam timer not initialized.")
+        st.stop()
 
     remaining = max(0, int(st.session_state.end_time - time.time()))
 
@@ -43,14 +40,40 @@ def render_timer(selected_subject):
 
     let remaining = {remaining};
 
+    const timer = document.getElementById("timer");
+    const countdown = document.getElementById("countdown");
+
     function updateTimer() {{
 
         let mins = Math.floor(remaining / 60);
         let secs = remaining % 60;
 
-        document.getElementById("countdown").innerHTML =
+        countdown.innerHTML =
             mins.toString().padStart(2,"0") + ":" +
             secs.toString().padStart(2,"0");
+
+        // Change colors
+        if (remaining <= 300) {{
+           timer.style.borderColor = "#d32f2f";
+           timer.style.color = "#d32f2f";
+        }}
+        else if (remaining <= 1800) {{
+            timer.style.borderColor = "#f57c00";
+            timer.style.color = "#f57c00";
+        }}
+        else {{
+            timer.style.borderColor = "#2e7d32";
+            timer.style.color = "#2e7d32";
+        }}
+
+        if (remaining <= 0) {{
+
+            clearInterval(timerInterval);
+
+            window.parent.location.reload();
+
+            return;
+        }}
 
         remaining--;
 
@@ -58,7 +81,7 @@ def render_timer(selected_subject):
 
     updateTimer();
 
-    setInterval(updateTimer,1000);
+    const timerInterval = setInterval(updateTimer,1000);
 
     </script>
     """
