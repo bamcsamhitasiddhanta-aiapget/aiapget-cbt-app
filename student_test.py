@@ -387,6 +387,15 @@ def show_running(
         # )
         # Timer
     remaining = render_timer(selected_subject)
+    if remaining <= 0:
+        if not st.session_state.submitted:
+            submit_exam(
+                questions,
+                selected_subject,
+                student_name,
+                student_email,
+            )
+        st.stop()
 
     q = questions[st.session_state.current_q]
     state = get_question_state(st.session_state.current_q)

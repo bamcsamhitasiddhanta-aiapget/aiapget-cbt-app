@@ -70,7 +70,7 @@ def render_timer(selected_subject):
 
             clearInterval(timerInterval);
 
-            window.parent.location.reload();
+            countdown.innerHTML = "00:00";
 
             return;
         }}
