@@ -386,8 +386,8 @@ def show_running(
         # key="exam_timer",
         # )
         # Timer
-    remaining = render_timer(selected_subject)
-    if remaining <= 0:
+    remaining, expired = render_timer(selected_subject)
+    if expired:
         if not st.session_state.submitted:
             submit_exam(
                 questions,
