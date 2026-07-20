@@ -1,8 +1,7 @@
 import time
 
 import streamlit as st
-
-from components.timer_component import timer_component
+from timer_component import timer_component
 
 
 def render_timer(selected_subject):
