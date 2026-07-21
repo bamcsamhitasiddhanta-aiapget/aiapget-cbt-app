@@ -7,6 +7,7 @@ export type MyComponentStateShape = {
 
 export type MyComponentDataShape = {
   end_time: number;
+  total_time: number;
 };
 
 export type MyComponentProps = Pick<
@@ -17,12 +18,14 @@ export type MyComponentProps = Pick<
 
 const MyComponent: FC<MyComponentProps> = ({
   end_time,
+  total_time,
   setStateValue,
 }): ReactElement => {
   const getRemaining = () =>
     Math.max(0, Math.floor(end_time - Date.now() / 1000));
 
   const [remaining, setRemaining] = useState(getRemaining());
+  const percent = (remaining / total_time) * 100;
 
   useEffect(() => {
     const timer = setInterval(() => {

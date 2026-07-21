@@ -20,6 +20,7 @@ def render_timer(selected_subject):
 
     result = timer_component(
         end_time=int(st.session_state.end_time),
+        total_time=int(st.session_state.total_time),
         key="exam_timer",
     )
     return remaining, result.get("expired", False)

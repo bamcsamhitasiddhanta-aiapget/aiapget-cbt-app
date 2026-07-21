@@ -11,7 +11,6 @@ from exam_db import (
 )
 from pages.exam.timer import render_timer
 from pages.result import show_result
-from uitimer.timer_ui import get_timer_state, timer_card
 
 
 def show_test(
@@ -390,17 +389,7 @@ def show_running(
         # )
         # Timer
     remaining, expired = render_timer(selected_subject)
-    total_seconds = st.session_state.total_time
 
-    timer_info = get_timer_state(
-        remaining,
-        total_seconds,
-    )
-
-    st.markdown(
-        timer_card(timer_info, remaining),
-        unsafe_allow_html=True,
-    )
     if expired:
         if not st.session_state.submitted:
             submit_exam(
