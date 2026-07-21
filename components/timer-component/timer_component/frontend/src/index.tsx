@@ -48,7 +48,8 @@ const MyComponentRoot: FrontendRenderer<
     <StrictMode>
       <MyComponent
         setStateValue={setStateValue}
-        end_time={end_time}
+        end_time={data.end_time}
+        total_time={data.total_time}
       />
     </StrictMode>,
   );
