@@ -11,7 +11,7 @@ from exam_db import (
 )
 from pages.exam.timer import render_timer
 from pages.result import show_result
-from ui.timer_ui import get_timer_state, timer_card
+from uitimer.timer_ui import get_timer_state, timer_card
 
 
 def show_test(
