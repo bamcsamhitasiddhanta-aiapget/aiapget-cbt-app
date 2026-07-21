@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import streamlit as st
 
+from admin_students import show_admin_students
 from database import execute, get_connection
 from db_utils import backup_database
 
@@ -31,13 +32,14 @@ def show_admin_dashboard():
     # -------------------------------
     # Tabs
     # -------------------------------
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
         [
             "📥 Import Excel",
             "✏️ Manage Questions",
             "➕ Add Question",
             "📤 Export Questions",
             "👥 Student Performance",
+            "🎓 Student Management",
         ]
     )
 
@@ -689,3 +691,5 @@ def show_admin_dashboard():
                 )
 
             st.divider()
+    with tab6:
+        show_admin_students()
