@@ -404,7 +404,7 @@ def get_student_summary(student_email):
         """
         SELECT
             COUNT(*) AS total_tests,
-            ROUND(AVG(percentage), 2) AS average_percentage,
+            ROUND(AVG(percentage)::numeric, 2) AS average_percentage,
             MAX(percentage) AS highest_percentage,
             MAX(submitted_at) AS last_test
         FROM test_attempts
