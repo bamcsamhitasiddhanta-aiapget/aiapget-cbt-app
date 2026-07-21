@@ -12,12 +12,13 @@ def on_expired_change():
     pass
 
 
-def timer_component(end_time: int, key=None):
+def timer_component(end_time: int, total_time: int, key=None):
 
     value = out(
         key=key,
         data={
             "end_time": end_time,
+            "total_time": total_time,
         },
         default={
             "expired": False,
