@@ -50,21 +50,82 @@ const MyComponent: FC<MyComponentProps> = ({
     .toString()
     .padStart(2, "0");
 
+  const hours = Math.floor(remaining / 3600)
+    .toString()
+    .padStart(2, "0");
+
+  const color =
+    percent > 25
+      ? "#16a34a"
+      : percent > 10
+        ? "#f59e0b"
+        : "#dc2626";
+
   return (
     <div
       style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "80px",
-        fontSize: "42px",
-        fontWeight: "bold",
-        fontFamily: "monospace",
+        width: "100%",
+        maxWidth: "500px",
+        margin: "10px auto",
+        padding: "18px",
+        borderRadius: "14px",
+        background: "#ffffff",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+        textAlign: "center",
+        fontFamily: "Arial, sans-serif",
       }}
     >
-      {minutes}:{seconds}
+      <div
+        style={{
+          fontSize: "15px",
+          fontWeight: 700,
+          color: "#555",
+          marginBottom: "10px",
+        }}
+      >
+        ⏳ TIME REMAINING
+      </div>
+
+      <div
+        style={{
+          fontSize: "42px",
+          fontWeight: "bold",
+          color: color,
+          marginBottom: "16px",
+        }}
+      >
+        {hours}:{minutes}:{seconds}
+      </div>
+
+      <div
+        style={{
+          width: "100%",
+          height: "14px",
+          background: "#e5e7eb",
+          borderRadius: "8px",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${percent}%`,
+            height: "100%",
+            background: color,
+            transition: "width 1s linear",
+          }}
+        />
+      </div>
+
+      <div
+        style={{
+          marginTop: "8px",
+          fontSize: "13px",
+          color: "#666",
+        }}
+      >
+        {Math.round(percent)}% time remaining
+      </div>
     </div>
   );
-};
-
+}
 export default MyComponent;
