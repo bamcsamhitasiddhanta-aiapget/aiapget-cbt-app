@@ -70,17 +70,35 @@ def login_student(email, password):
     conn = get_connection()
     cursor = conn.cursor()
 
-    hashed_password = hashlib.sha256(password.encode()).hexdigest()
-
     execute(
         cursor,
-        "SELECT * FROM students WHERE email=? AND password=?",
-        (email, hashed_password),
+        "SELECT * FROM students WHERE email=?",
+        (email,),
     )
 
     student = cursor.fetchone()
 
     conn.close()
+
+    if not student:
+        return None
+
+    # PostgreSQL row may be dict-like or tuple depending on your cursor
+    try:
+        is_blocked = student["is_blocked"]
+        stored_password = student["password"]
+    except Exception:
+        # Fallback for tuple rows
+        is_blocked = student[5]
+        stored_password = student[3]
+
+    if is_blocked:
+        return "BLOCKED"
+
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+
+    if stored_password != hashed_password:
+        return None
 
     return student
 

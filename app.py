@@ -60,6 +60,10 @@ if not st.session_state.logged_in:
 
         if st.button("Login"):
             student = login_student(email, password)
+            if student == "BLOCKED":
+                st.error(
+                    "🚫 Your account has been blocked. Please contact the administrator."
+                )
 
             if student:
                 st.session_state.logged_in = True
