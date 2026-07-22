@@ -65,7 +65,7 @@ if not st.session_state.logged_in:
                     "🚫 Your account has been blocked. Please contact the administrator."
                 )
 
-            if student:
+            elif student:
                 st.session_state.logged_in = True
                 st.session_state.student_email = student["email"]
                 st.session_state.student_name = student["name"]  # name
