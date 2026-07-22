@@ -59,29 +59,26 @@ if not st.session_state.logged_in:
         email = st.text_input("Email", key="login_email")
         password = st.text_input("Password", type="password", key="login_password")
 
-        maintenance = get_maintenance_mode()
-
-        if maintenance:
-            st.error(
-                "🚧 AIAPGET CBT Platform is currently under maintenance.\n\n"
-                "Please try again later."
-            )
-            st.stop()
         if st.button("Login"):
-            student = login_student(email, password)
-            if student == "BLOCKED":
+            if get_maintenance_mode():
                 st.error(
-                    "🚫 Your account has been blocked. Please contact the administrator."
+                    "🚧 The system is currently under maintenance. Please try again later."
                 )
-
-            elif student:
-                st.session_state.logged_in = True
-                st.session_state.student_email = student["email"]
-                st.session_state.student_name = student["name"]  # name
-                st.success("Login Successful!")
-                st.rerun()
             else:
-                st.error("Invalid email or password")
+                student = login_student(email, password)
+                if student == "BLOCKED":
+                    st.error(
+                        "🚫 Your account has been blocked. Please contact the administrator."
+                    )
+
+                elif student:
+                    st.session_state.logged_in = True
+                    st.session_state.student_email = student["email"]
+                    st.session_state.student_name = student["name"]  # name
+                    st.success("Login Successful!")
+                    st.rerun()
+                else:
+                    st.error("Invalid email or password")
 
     with tab2:
         name = st.text_input("Full Name")
