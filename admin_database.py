@@ -24,3 +24,34 @@ def get_all_students():
     conn.close()
 
     return students
+
+
+from database import execute
+
+
+def block_student(student_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    execute(
+        cursor,
+        "UPDATE students SET is_blocked = TRUE WHERE id = ?",
+        (student_id,),
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def unblock_student(student_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    execute(
+        cursor,
+        "UPDATE students SET is_blocked = FALSE WHERE id = ?",
+        (student_id,),
+    )
+
+    conn.commit()
+    conn.close()
