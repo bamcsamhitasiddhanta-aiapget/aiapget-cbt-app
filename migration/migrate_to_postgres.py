@@ -17,6 +17,20 @@ pg_conn = psycopg.connect(POSTGRES_URL)
 
 sqlite_cur = sqlite_conn.cursor()
 pg_cur = pg_conn.cursor()
+# Clear existing data (child tables first)
+print("Clearing existing PostgreSQL data...")
+
+pg_cur.execute("""
+TRUNCATE TABLE
+    student_responses,
+    test_attempts,
+    results,
+    questions,
+    students
+RESTART IDENTITY CASCADE;
+""")
+
+print("✓ PostgreSQL tables cleared")
 
 
 def migrate_table(
