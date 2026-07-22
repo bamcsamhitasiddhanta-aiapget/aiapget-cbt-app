@@ -58,6 +58,14 @@ if not st.session_state.logged_in:
         email = st.text_input("Email", key="login_email")
         password = st.text_input("Password", type="password", key="login_password")
 
+        maintenance = get_maintenance_mode()
+
+        if maintenance:
+            st.error(
+                "🚧 AIAPGET CBT Platform is currently under maintenance.\n\n"
+                "Please try again later."
+            )
+            st.stop()
         if st.button("Login"):
             student = login_student(email, password)
             if student == "BLOCKED":

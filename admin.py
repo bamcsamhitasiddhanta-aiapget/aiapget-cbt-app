@@ -32,7 +32,7 @@ def show_admin_dashboard():
     # -------------------------------
     # Tabs
     # -------------------------------
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(
         [
             "📥 Import Excel",
             "✏️ Manage Questions",
@@ -40,6 +40,7 @@ def show_admin_dashboard():
             "📤 Export Questions",
             "👥 Student Performance",
             "🎓 Student Management",
+            "⚙️ System Settings",
         ]
     )
 
@@ -693,3 +694,27 @@ def show_admin_dashboard():
             st.divider()
     with tab6:
         show_admin_students()
+
+    with tab7:
+        st.subheader("⚙️ System Settings")
+
+        maintenance = get_maintenance_mode()
+
+        if maintenance:
+            st.error("🔴 Maintenance Mode is ENABLED")
+        else:
+            st.success("🟢 Maintenance Mode is DISABLED")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            if st.button("Enable Maintenance"):
+                set_maintenance_mode(True)
+                st.success("Maintenance Mode Enabled")
+                st.rerun()
+
+        with col2:
+            if st.button("Disable Maintenance"):
+                set_maintenance_mode(False)
+                st.success("Maintenance Mode Disabled")
+                st.rerun()

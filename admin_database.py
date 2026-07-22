@@ -55,3 +55,47 @@ def unblock_student(student_id):
 
     conn.commit()
     conn.close()
+
+
+def get_maintenance_mode():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    execute(
+        cursor,
+        """
+        SELECT setting_value
+        FROM system_settings
+        WHERE setting_name=?
+        """,
+        ("maintenance_mode",),
+    )
+
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row:
+        return False
+
+    try:
+        return row["setting_value"].lower() == "true"
+    except Exception:
+        return row[0].lower() == "true"
+
+
+def set_maintenance_mode(enabled):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    execute(
+        cursor,
+        """
+        UPDATE system_settings
+        SET setting_value=?
+        WHERE setting_name='maintenance_mode'
+        """,
+        ("true" if enabled else "false",),
+    )
+
+    conn.commit()
+    conn.close()
