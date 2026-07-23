@@ -162,3 +162,23 @@ def get_all_tags():
     conn.close()
 
     return tags
+
+
+def remove_question_tag(question_uid, tag_name):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    execute(
+        cursor,
+        """
+        DELETE
+        FROM question_tags
+        WHERE question_uid = ?
+        AND tag_name = ?
+        """,
+        (question_uid, tag_name),
+    )
+
+    conn.commit()
+    conn.close()
