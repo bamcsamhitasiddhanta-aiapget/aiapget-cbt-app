@@ -75,39 +75,48 @@ Practice consistently. Success in AIAPGET comes one test at a time.
         st.metric("Last Test", last_test)
         st.divider()
 
-    dashboard_card(
-        "📘",
-        "Subject Tests",
-        "Practice individual subjects with a timed CBT examination.",
-        "Start Subject Tests",
-        "subject_tests",
-    )
+    col1, col2 = st.columns(2)
 
-    dashboard_card(
-        "📖",
-        "Samhita Tests",
-        "Practice Charaka, Sushruta, Ashtanga Hridaya and other Samhitas.",
-        "Start Samhita Tests",
-        "samhita_tests",
-    )
+    with col1:
+        dashboard_card(
+            "📘",
+            "Subject Tests",
+            "Practice individual subjects with a timed CBT examination.",
+            "Start Subject Tests",
+            "subject_tests",
+        )
 
-    dashboard_card(
-        "🎯",
-        "Mock Tests",
-        "Attempt a complete AIAPGET-style mock examination.",
-        "Start Mock Test",
-        "mock_tests",
-    )
+    with col2:
+        dashboard_card(
+            "📖",
+            "Samhita Tests",
+            "Practice Charaka, Sushruta, Ashtanga Hridaya and other Samhitas.",
+            "Start Samhita Tests",
+            "samhita_tests",
+        )
 
-    dashboard_card(
-        "📊",
-        "My Results",
-        "View your previous test attempts and performance.",
-        "View Results",
-        "results",
-    )
+    col3, col4 = st.columns(2)
 
-    st.divider()
+    with col3:
+        dashboard_card(
+            "🎯",
+            "Mock Tests",
+            "Attempt a complete AIAPGET-style mock examination.",
+            "Start Mock Test",
+            "mock_tests",
+        )
+
+    with col4:
+        dashboard_card(
+            "📊",
+            "My Results",
+            "View your previous test attempts and performance.",
+            "View Results",
+            "results",
+        )
+
+        st.divider()
+        st.subheader("📜 Recent Activity")
 
     if st.button("🚪 Logout", use_container_width=True):
         st.session_state.logged_in = False
