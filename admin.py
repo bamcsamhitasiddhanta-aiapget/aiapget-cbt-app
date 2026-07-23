@@ -327,7 +327,7 @@ def show_admin_dashboard():
                     height=100,
                     key=f"edit_explanation_{question_id}",
                 )
-                col1, col2 = st.columns(2)
+
                 # =====================================================
                 # TAG MANAGER
                 # =====================================================
@@ -370,6 +370,7 @@ def show_admin_dashboard():
 
                         st.rerun()
 
+                col1, col2 = st.columns(2)
                 with col1:
                     if st.button("💾 Save Changes", key="save_question"):
                         execute(
