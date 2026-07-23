@@ -1,48 +1,8 @@
 import streamlit as st
 
-st.title("🎓 AIAPGET CBT Practice Test")
-
-st.markdown(
-    f"""
-### Welcome, **{st.session_state.student_name}**
-
-Practice consistently. Success in AIAPGET comes one test at a time.
-"""
-)
-
-st.divider()
-
-
-c1, c2, c3, c4 = st.columns(4)
-
-with c1:
-    st.metric(
-        label="Tests Attempted",
-        value="0",
-    )
-
-with c2:
-    st.metric(
-        label="Average Score",
-        value="0%",
-    )
-
-with c3:
-    st.metric(
-        label="Highest Score",
-        value="0%",
-    )
-
-with c4:
-    st.metric(
-        label="Last Test",
-        value="-",
-    )
-
-st.divider()
-
 
 def dashboard_card(icon, title, description, button_text, page_key):
+
     st.markdown(
         f"""
         <div style="
@@ -66,9 +26,43 @@ def dashboard_card(icon, title, description, button_text, page_key):
 
 def show_student_dashboard(student_name):
 
-    st.title("🎓 AIAPGET CBT Practice Portal")
+    st.title("🎓 AIAPGET CBT Practice Test")
 
-    st.success(f"Welcome **{student_name}**")
+    st.markdown(
+        f"""
+### Welcome, **{student_name}**
+
+Practice consistently. Success in AIAPGET comes one test at a time.
+"""
+    )
+
+    st.divider()
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    with c1:
+        st.metric(
+            label="Tests Attempted",
+            value="0",
+        )
+
+    with c2:
+        st.metric(
+            label="Average Score",
+            value="0%",
+        )
+
+    with c3:
+        st.metric(
+            label="Highest Score",
+            value="0%",
+        )
+
+    with c4:
+        st.metric(
+            label="Last Test",
+            value="-",
+        )
 
     st.divider()
 
