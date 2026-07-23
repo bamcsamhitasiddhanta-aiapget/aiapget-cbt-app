@@ -141,6 +141,28 @@ def show_admin_dashboard():
                         ),
                     )
 
+                    # -----------------------------
+                    # Import Additional Tags
+                    # -----------------------------
+                    tags = str(row.get("additional_tags", "")).strip()
+
+                    if tags and tags.lower() != "nan":
+                        tag_list = [
+                            tag.strip() for tag in tags.split(",") if tag.strip()
+                        ]
+
+                        for tag in tag_list:
+                            execute(
+                                cursor,
+                                """
+                                INSERT INTO question_tags
+                                (question_uid, tag_name)
+                                VALUES (?, ?)
+                                ON CONFLICT (question_uid, tag_name) DO NOTHING
+                                """,
+                                (question_uid, tag),
+                            )
+
                     imported += 1
 
                 conn.commit()

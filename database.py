@@ -27,7 +27,7 @@ import time
 
 def get_connection():
 
-    increment_connection()
+    # increment_connection()
 
     start = time.perf_counter()
 
@@ -56,8 +56,108 @@ def adapt_query(query):
 
 def execute(cursor, query, params=()):
 
-    increment_query()
+    # increment_query()
 
     query = adapt_query(query)
 
     return cursor.execute(query, params)
+
+
+def add_question_tag(question_uid, tag_name):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        INSERT INTO question_tags (question_uid, tag_name)
+        VALUES (%s, %s)
+        ON CONFLICT (question_uid, tag_name) DO NOTHING
+        """,
+        (question_uid, tag_name),
+    )
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+def get_question_tags(question_uid):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        SELECT tag_name
+        FROM question_tags
+        WHERE question_uid = %s
+        ORDER BY tag_name
+        """,
+        (question_uid,),
+    )
+
+    tags = [row[0] for row in cur.fetchall()]
+
+    cur.close()
+    conn.close()
+
+    return tags
+
+
+def remove_question_tags(question_uid):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        DELETE FROM question_tags
+        WHERE question_uid = %s
+        """,
+        (question_uid,),
+    )
+
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+
+def get_questions_by_tag(tag_name):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        SELECT q.*
+        FROM questions q
+        JOIN question_tags qt
+            ON q.question_uid = qt.question_uid
+        WHERE qt.tag_name = %s
+        """,
+        (tag_name,),
+    )
+
+    questions = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return questions
+
+
+def add_question_tag(question_uid, tag_name):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    execute(
+        cursor,
+        """
+        INSERT INTO question_tags
+        (question_uid, tag_name)
+        VALUES (?, ?)
+        ON CONFLICT (question_uid, tag_name) DO NOTHING
+        """,
+        (question_uid, tag_name),
+    )
+
+    conn.commit()
+    conn.close()
