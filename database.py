@@ -82,22 +82,24 @@ def add_question_tag(question_uid, tag_name):
 
 
 def get_question_tags(question_uid):
-    conn = get_connection()
-    cur = conn.cursor()
 
-    cur.execute(
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    execute(
+        cursor,
         """
         SELECT tag_name
         FROM question_tags
-        WHERE question_uid = %s
+        WHERE question_uid = ?
         ORDER BY tag_name
         """,
         (question_uid,),
     )
 
-    tags = [row[0] for row in cur.fetchall()]
+    tags = [row["tag_name"] for row in cursor.fetchall()]
 
-    cur.close()
+    cursor.close()
     conn.close()
 
     return tags
