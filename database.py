@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import random
 
 import psycopg
 from dotenv import find_dotenv, load_dotenv
@@ -190,3 +191,91 @@ def remove_question_tag(question_uid, tag_name):
 
     conn.commit()
     conn.close()
+
+
+def get_all_questions():
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    execute(
+        cursor,
+        """
+        SELECT
+            question_uid,
+            subject,
+            question,
+            option1,
+            option2,
+            option3,
+            option4,
+            answer,
+            explanation,
+            image
+        FROM questions
+        ORDER BY subject
+        """,
+    )
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    questions = []
+
+    for row in rows:
+        questions.append(
+            {
+                "question_uid": row["question_uid"],
+                "subject": row["subject"],
+                "question": row["question"],
+                "options": [
+                    row["option1"],
+                    row["option2"],
+                    row["option3"],
+                    row["option4"],
+                ],
+                "answer": row["answer"],
+                "explanation": row["explanation"],
+                "image": row["image"],
+            }
+        )
+
+    return questions
+
+
+def get_subjects():
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    execute(
+        cursor,
+        """
+        SELECT DISTINCT subject
+        FROM questions
+        ORDER BY subject
+        """,
+    )
+
+    subjects = [row["subject"] for row in cursor.fetchall()]
+
+    conn.close()
+
+    return subjects
+
+
+def get_questions_by_subject(subject):
+
+    questions = get_all_questions()
+
+    return [q for q in questions if q["subject"] == subject]
+
+
+def get_mock_questions(limit=100):
+
+    questions = get_all_questions()
+
+    random.shuffle(questions)
+
+    return questions[:limit]    

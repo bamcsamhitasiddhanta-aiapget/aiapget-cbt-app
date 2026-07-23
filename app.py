@@ -2,9 +2,10 @@ import streamlit as st
 from dotenv import find_dotenv, load_dotenv
 
 import admin
+import student_dashboard
 import student_test
+import subject_tests
 from admin_database import get_maintenance_mode, get_registration_enabled
-from database import get_connection
 from db_utils import admin_login, login_student, register_student
 from developer_monitor import *
 
@@ -33,6 +34,10 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "is_admin" not in st.session_state:
     st.session_state.is_admin = False
+
+# Student Navigation
+if "student_page" not in st.session_state:
+    st.session_state.student_page = "dashboard"
 st.markdown(
     """
 <style>
@@ -100,6 +105,10 @@ if not st.session_state.logged_in:
                 st.session_state.logged_in = True
                 st.session_state.student_email = student["email"]
                 st.session_state.student_name = student["name"]
+
+                # First page after login
+                st.session_state.student_page = "dashboard"
+
                 st.success("Login Successful!")
                 st.rerun()
 
@@ -153,107 +162,23 @@ if st.session_state.get("is_admin", False):
 # Load questions from folder
 
 
-conn = get_connection()
-cursor = conn.cursor()
+# ================= STUDENT ROUTER =================
 
-cursor.execute("""
-SELECT
-    question_uid,
-    subject,
-    question,
-    option1,
-    option2,
-    option3,
-    option4,
-    answer,
-    explanation,
-    image
-FROM questions
-""")
+if st.session_state.student_page == "dashboard":
+    student_dashboard.show_student_dashboard(st.session_state.student_name)
 
-rows = cursor.fetchall()
-conn.close()
+elif st.session_state.student_page == "subject_tests":
+    subject_tests.show_subject_tests()
 
-questions = []
+elif st.session_state.student_page == "mock_tests":
+    st.info("🚧 Mock Tests - Coming Soon")
 
-for row in rows:
-    questions.append(
-        {
-            "question_uid": row["question_uid"],
-            "subject": row["subject"],
-            "question": row["question"],
-            "options": [
-                row["option1"],
-                row["option2"],
-                row["option3"],
-                row["option4"],
-            ],
-            "answer": row["answer"],
-            "explanation": row["explanation"],
-            "image": row["image"],
-        }
-    )
-# Get unique subjects
-subjects = sorted({q["subject"] for q in questions})
-subjects.append("Full Mock Test")
+elif st.session_state.student_page == "samhita_tests":
+    st.info("🚧 Samhita Tests - Coming Soon")
 
-import random
+elif st.session_state.student_page == "results":
+    st.info("🚧 Results - Coming Soon")
 
-selected_subject = st.selectbox(
-    "Select Subject",
-    subjects,
-    index=None,
-    placeholder="Select Subject",
-    key="subject_select",
-    disabled=st.session_state.get("test_state", "home") != "home",
-)
-
-# Reset test state when subject changes
-if "last_subject" not in st.session_state:
-    st.session_state.last_subject = selected_subject
-
-if st.session_state.last_subject != selected_subject:
-    st.session_state.last_subject = selected_subject
-
-    st.session_state.start_time = None
-    st.session_state.submitted = False
-    st.session_state.answers = {}
-    st.session_state.review = {}
-    st.session_state.current_q = 0
-    st.session_state.result_saved = False
-
-    # Reset mock questions if needed
-    if selected_subject != "Full Mock Test":
-        st.session_state.mock_questions = None
-
-    st.rerun()
-
-# Filter logic
-if selected_subject is None:
-    questions = []
-
-elif selected_subject == "Full Mock Test":
-    if (
-        "mock_questions" not in st.session_state
-        or st.session_state.mock_questions is None
-    ):
-        temp = questions.copy()
-        random.shuffle(temp)
-        st.session_state.mock_questions = temp[:100]
-
-    questions = st.session_state.mock_questions
-
-else:
-    questions = [q for q in questions if q["subject"] == selected_subject]
-    st.session_state.mock_questions = None
-
-
-student_test.show_test(
-    questions=questions,
-    selected_subject=selected_subject,
-    student_name=st.session_state.student_name,
-    student_email=st.session_state.student_email,
-)
 
 end_page_timer()
 show_monitor()
