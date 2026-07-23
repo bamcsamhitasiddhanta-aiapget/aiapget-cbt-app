@@ -10,7 +10,13 @@ from admin_database import (
     set_registration_enabled,
 )
 from admin_students import show_admin_students
-from database import execute, get_connection
+from database import (
+    add_question_tag,
+    execute,
+    get_connection,
+    get_question_tags,
+    remove_question_tag,
+)
 from db_utils import backup_database
 
 
@@ -148,7 +154,9 @@ def show_admin_dashboard():
 
                     if tags and tags.lower() != "nan":
                         tag_list = [
-                            tag.strip() for tag in tags.split(",") if tag.strip()
+                            tag.strip().title()
+                            for tag in tags.split(",")
+                            if tag.strip()
                         ]
 
                         for tag in tag_list:
@@ -238,6 +246,7 @@ def show_admin_dashboard():
                     cursor,
                     """
                     SELECT
+                        question_uid,
                         question,
                         option1,
                         option2,
@@ -319,6 +328,47 @@ def show_admin_dashboard():
                     key=f"edit_explanation_{question_id}",
                 )
                 col1, col2 = st.columns(2)
+                # =====================================================
+                # TAG MANAGER
+                # =====================================================
+
+                st.divider()
+
+                st.subheader("🏷️ Tags")
+
+                question_uid = row["question_uid"]
+
+                tags = get_question_tags(question_uid)
+
+                if tags:
+                    st.write("Current Tags:")
+
+                    for tag in tags:
+                        c1, c2 = st.columns([8, 1])
+
+                        with c1:
+                            st.write(f"✅ {tag}")
+
+                        with c2:
+                            if st.button("❌", key=f"remove_{question_uid}_{tag}"):
+                                remove_question_tag(question_uid, tag)
+                                st.rerun()
+
+                else:
+                    st.info("No tags assigned.")
+
+                new_tag = st.text_input(
+                    "Add New Tag",
+                    key=f"new_tag_{question_uid}",
+                )
+
+                if st.button("➕ Add Tag", key=f"add_tag_{question_uid}"):
+                    if new_tag.strip():
+                        add_question_tag(question_uid, new_tag)
+
+                        st.success("Tag Added!")
+
+                        st.rerun()
 
                 with col1:
                     if st.button("💾 Save Changes", key="save_question"):

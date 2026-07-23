@@ -144,20 +144,21 @@ def get_questions_by_tag(tag_name):
     return questions
 
 
-def add_question_tag(question_uid, tag_name):
+def get_all_tags():
     conn = get_connection()
     cursor = conn.cursor()
 
     execute(
         cursor,
         """
-        INSERT INTO question_tags
-        (question_uid, tag_name)
-        VALUES (?, ?)
-        ON CONFLICT (question_uid, tag_name) DO NOTHING
+        SELECT DISTINCT tag_name
+        FROM question_tags
+        ORDER BY tag_name
         """,
-        (question_uid, tag_name),
     )
 
-    conn.commit()
+    tags = [row["tag_name"] for row in cursor.fetchall()]
+
     conn.close()
+
+    return tags
