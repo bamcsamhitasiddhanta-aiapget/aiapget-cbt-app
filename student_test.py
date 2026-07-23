@@ -889,3 +889,23 @@ def show_review():
             if st.session_state.review_q < len(rows) - 1:
                 st.session_state.review_q += 1
                 st.rerun()
+
+
+def reset_exam_session():
+
+    st.session_state.start_time = None
+    st.session_state.submitted = False
+
+    st.session_state.answers = {}
+    st.session_state.review = {}
+
+    st.session_state.current_q = 0
+    st.session_state.result_saved = False
+
+    st.session_state.mock_questions = None
+    st.session_state.last_subject = None
+
+    st.session_state.result = None
+    st.session_state.question_state = {}
+
+    st.session_state.test_state = "home"

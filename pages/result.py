@@ -85,15 +85,17 @@ def show_result():
             st.rerun()
     with b2:
         if st.button(
-            "🏠 Back to Home",
+            "🏠 Back to Dashboard",
             use_container_width=True,
         ):
-            st.session_state.test_state = "home"
-            st.session_state.question_state = {}
-            st.session_state.current_q = 0
+            from student_test import reset_exam_session
+
+            reset_exam_session()
+
             st.session_state.result = None
-            st.session_state.submitted = False
+            st.session_state.question_state = {}
+
+            # Return to Student Dashboard
+            st.session_state.student_page = "dashboard"
+
             st.rerun()
-
-
-
