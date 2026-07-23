@@ -67,10 +67,14 @@ def add_question_tag(question_uid, tag_name):
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute(
+    tag_name = tag_name.strip().title()
+
+    execute(
+        cur,
         """
-        INSERT INTO question_tags (question_uid, tag_name)
-        VALUES (%s, %s)
+        INSERT INTO question_tags
+        (question_uid, tag_name)
+        VALUES (?, ?)
         ON CONFLICT (question_uid, tag_name) DO NOTHING
         """,
         (question_uid, tag_name),
@@ -105,18 +109,18 @@ def get_question_tags(question_uid):
     return tags
 
 
-def remove_question_tags(question_uid):
+def remove_all_question_tags(question_uid):
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute(
+    execute(
+        cur,
         """
         DELETE FROM question_tags
-        WHERE question_uid = %s
+        WHERE question_uid = ?
         """,
         (question_uid,),
     )
-
     conn.commit()
 
     cur.close()
@@ -127,13 +131,14 @@ def get_questions_by_tag(tag_name):
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute(
+    execute(
+        cur,
         """
         SELECT q.*
         FROM questions q
         JOIN question_tags qt
-            ON q.question_uid = qt.question_uid
-        WHERE qt.tag_name = %s
+           ON q.question_uid = qt.question_uid
+        WHERE qt.tag_name = ?
         """,
         (tag_name,),
     )
@@ -161,6 +166,7 @@ def get_all_tags():
 
     tags = [row["tag_name"] for row in cursor.fetchall()]
 
+    cursor.close()
     conn.close()
 
     return tags
