@@ -1,6 +1,6 @@
 import os
-import sqlite3
 import random
+import sqlite3
 
 import psycopg
 from dotenv import find_dotenv, load_dotenv
@@ -278,4 +278,4 @@ def get_mock_questions(limit=100):
 
     random.shuffle(questions)
 
-    return questions[:limit]    
+    return questions[:limit]
