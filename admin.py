@@ -3,7 +3,12 @@ import os
 import pandas as pd
 import streamlit as st
 
-from admin_database import get_maintenance_mode, set_maintenance_mode
+from admin_database import (
+    get_maintenance_mode,
+    get_registration_enabled,
+    set_maintenance_mode,
+    set_registration_enabled,
+)
 from admin_students import show_admin_students
 from database import execute, get_connection
 from db_utils import backup_database
@@ -719,3 +724,24 @@ def show_admin_dashboard():
                 set_maintenance_mode(False)
                 st.success("Maintenance Mode Disabled")
                 st.rerun()
+
+        st.subheader("📝 Student Registration")
+
+        registration = get_registration_enabled()
+
+        if registration:
+            st.success("🟢 Registration Enabled")
+        else:
+            st.error("🔴 Registration Disabled")
+
+        col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("Enable Registration"):
+            set_registration_enabled(True)
+            st.rerun()
+
+    with col2:
+        if st.button("Disable Registration"):
+            set_registration_enabled(False)
+            st.rerun()

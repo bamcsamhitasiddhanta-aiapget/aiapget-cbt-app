@@ -3,7 +3,7 @@ from dotenv import find_dotenv, load_dotenv
 
 import admin
 import student_test
-from admin_database import get_maintenance_mode
+from admin_database import get_maintenance_mode, get_registration_enabled
 from database import get_connection
 from db_utils import admin_login, login_student, register_student
 from developer_monitor import *
@@ -56,40 +56,73 @@ if not st.session_state.logged_in:
     tab1, tab2, tab3 = st.tabs(["🔐 Login", "📝 Register", "👨‍💼 Admin"])
 
     with tab1:
-        email = st.text_input("Email", key="login_email")
-        password = st.text_input("Password", type="password", key="login_password")
+        maintenance = get_maintenance_mode()
 
-        if st.button("Login"):
-            if get_maintenance_mode():
+        if maintenance:
+            st.warning("🚧 Scheduled Maintenance")
+
+            st.info(
+                """
+                The AIAPGET CBT Platform is currently undergoing scheduled maintenance.
+
+                Student login is temporarily disabled.
+
+                Please try again later.
+                """
+            )
+
+        email = st.text_input(
+            "Email",
+            key="login_email",
+            disabled=maintenance,
+        )
+
+        password = st.text_input(
+            "Password",
+            type="password",
+            key="login_password",
+            disabled=maintenance,
+        )
+
+        if st.button(
+            "🔐 Login",
+            disabled=maintenance,
+            use_container_width=True,
+        ):
+            student = login_student(email, password)
+
+            if student == "BLOCKED":
                 st.error(
-                    "🚧 The system is currently under maintenance. Please try again later."
+                    "🚫 Your account has been blocked. Please contact the administrator."
                 )
-            else:
-                student = login_student(email, password)
-                if student == "BLOCKED":
-                    st.error(
-                        "🚫 Your account has been blocked. Please contact the administrator."
-                    )
 
-                elif student:
-                    st.session_state.logged_in = True
-                    st.session_state.student_email = student["email"]
-                    st.session_state.student_name = student["name"]  # name
-                    st.success("Login Successful!")
-                    st.rerun()
-                else:
-                    st.error("Invalid email or password")
+            elif student:
+                st.session_state.logged_in = True
+                st.session_state.student_email = student["email"]
+                st.session_state.student_name = student["name"]
+                st.success("Login Successful!")
+                st.rerun()
+
+            else:
+                st.error("Invalid email or password")
 
     with tab2:
-        name = st.text_input("Full Name")
-        reg_email = st.text_input("Email", key="reg_email")
-        reg_password = st.text_input("Password", type="password", key="reg_password")
+        if not get_registration_enabled():
+            st.warning("📝 New registrations are temporarily disabled.")
+            st.info("Please contact the administrator or try again later.")
 
-        if st.button("Register"):
-            if register_student(name, reg_email, reg_password):
-                st.success("Registration successful! Please log in.")
-            else:
-                st.error("Email already registered.")
+        else:
+            name = st.text_input("Full Name")
+            reg_email = st.text_input("Email", key="reg_email")
+            reg_password = st.text_input(
+                "Password", type="password", key="reg_password"
+            )
+
+            if st.button("Register"):
+                if register_student(name, reg_email, reg_password):
+                    st.success("Registration successful! Please log in.")
+                else:
+                    st.errors("Email already registered.")
     with tab3:
         admin_user = st.text_input("Admin Username", key="admin_user")
 
