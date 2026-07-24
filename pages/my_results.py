@@ -2,7 +2,7 @@ from datetime import datetime
 
 import streamlit as st
 
-from exam_db import get_previous_attempts, get_student_summary
+from exam_db import get_previous_attempts, get_student_dashboard, get_student_summary
 from utils import format_duration
 
 
@@ -13,6 +13,7 @@ def show_my_results():
     summary = get_student_summary(st.session_state.student_email)
     summary = get_student_summary(st.session_state.student_email)
     previous_attempts = get_previous_attempts(st.session_state.student_email)
+    dashboard = get_student_dashboard(st.session_state.student_email)
 
     total_tests = summary["total_tests"] or 0
     average_score = summary["average_percentage"] or 0
@@ -106,3 +107,26 @@ def show_my_results():
 
     else:
         st.info("No previous attempts.")
+
+    # ==================================================
+    # Subject Performance
+    # ==================================================
+
+    st.divider()
+
+    st.subheader("📈 Subject Performance")
+
+    subject_performance = dashboard["subject_performance"]
+
+    if subject_performance:
+        for row in subject_performance:
+            subject = row["subject"]
+            percentage = float(row["average_percentage"])
+            st.write(f"📚 {subject}")
+
+            st.progress(percentage / 100)
+
+            st.caption(f"{percentage:.2f}%")
+
+    else:
+        st.info("No subject performance available.")
