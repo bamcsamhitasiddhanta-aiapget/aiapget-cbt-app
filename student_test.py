@@ -207,63 +207,9 @@ def show_home(
     # Previous Attempts
     # ==================================================
 
-    st.divider()
-
-    st.subheader("📂 Previous Attempts")
-
-    if previous_attempts:
-        for attempt in previous_attempts:
-            attempt_id = attempt["attempt_id"]
-            subject = attempt["subject"]
-            percentage = attempt["percentage"]
-            duration = format_duration(attempt["duration_seconds"])
-            date = attempt["submitted_at"][:10] if attempt["submitted_at"] else "-"
-
-            col1, col2 = st.columns([6, 1])
-
-            with col1:
-                st.write(
-                    f"📚 **{subject}** | "
-                    f"🎯 {percentage:.2f}% | "
-                    f"⏱ {duration} | "
-                    f"📅 {date}"
-                )
-
-            with col2:
-                if st.button(
-                    "👁",
-                    key=f"attempt_{attempt_id}",
-                ):
-                    st.session_state.review_attempt_id = attempt_id
-                    st.session_state.attempt_review_q = 0
-                    st.session_state.test_state = "attempt_review"
-                    st.rerun()
-
-    else:
-        st.info("No previous attempts.")
-
     # ==================================================
     # Subject Performance
     # ==================================================
-
-    st.divider()
-
-    st.subheader("📈 Subject Performance")
-
-    subject_performance = dashboard["subject_performance"]
-
-    if subject_performance:
-        for row in subject_performance:
-            subject = row["subject"]
-            percentage = float(row["average_percentage"])
-            st.write(f"📚 {subject}")
-
-            st.progress(percentage / 100)
-
-            st.caption(f"{percentage:.2f}%")
-
-    else:
-        st.info("No subject performance available.")
 
     # ==================================================
     # Logout

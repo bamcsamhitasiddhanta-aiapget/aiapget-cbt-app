@@ -14,6 +14,17 @@ def show_my_results():
     summary = get_student_summary(st.session_state.student_email)
     previous_attempts = get_previous_attempts(st.session_state.student_email)
     dashboard = get_student_dashboard(st.session_state.student_email)
+    overall = dashboard.get("overall")
+
+    if overall is None:
+        overall = {}
+    elif not isinstance(overall, dict):
+        overall = dict(overall)
+
+    tests_taken = overall.get("total_tests", 0) or 0
+    best_accuracy = float(overall.get("highest_percentage", 0) or 0)
+    average_accuracy = float(overall.get("average_percentage", 0) or 0)
+    average_time = int(overall.get("average_duration", 0) or 0)
 
     total_tests = summary["total_tests"] or 0
     average_score = summary["average_percentage"] or 0
@@ -44,6 +55,29 @@ def show_my_results():
 
     with c4:
         st.metric("Last Test", last_test)
+    st.divider()
+    # ==================================================
+    # Statistics
+    # ==================================================
+
+    st.divider()
+
+    st.subheader("📊 Your Statistics")
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    with c1:
+        st.metric("Tests Taken", tests_taken)
+
+    with c2:
+        st.metric("Best Accuracy", f"{best_accuracy:.2f}%")
+
+    with c3:
+        st.metric("Average Accuracy", f"{average_accuracy:.2f}%")
+
+    with c4:
+        st.metric("Average Time", format_duration(average_time))
+
     st.divider()
     st.subheader("📜 Recent Activity")
 
