@@ -8,6 +8,15 @@ from utils import format_duration
 
 def show_my_results():
     st.title("📊 My Results")
+
+    if st.button(
+        "⬅ Back to Dashboard",
+        use_container_width=True,
+    ):
+        st.session_state.student_page = "dashboard"
+        st.rerun()
+
+    st.divider()
     st.caption("View your test history, previous attempts and performance.")
     st.divider()
     summary = get_student_summary(st.session_state.student_email)
