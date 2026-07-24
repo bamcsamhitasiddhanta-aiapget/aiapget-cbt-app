@@ -868,19 +868,15 @@ def show_review():
 
     with c2:
         if st.button(
-            "🏠 Home",
+            "🏠 Dashboard",
             use_container_width=True,
         ):
-            st.session_state.test_state = "home"
-
             st.session_state.review_q = 0
             st.session_state.review_data = None
 
-            st.session_state.question_state = {}
-            st.session_state.current_q = 0
-            st.session_state.result = None
-            st.session_state.submitted = False
-            st.session_state.start_time = None
+            reset_exam_session()
+
+            st.session_state.student_page = "dashboard"
 
             st.rerun()
 
@@ -907,5 +903,3 @@ def reset_exam_session():
 
     st.session_state.result = None
     st.session_state.question_state = {}
-
-    st.session_state.test_state = "home"
