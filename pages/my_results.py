@@ -2,7 +2,7 @@ from datetime import datetime
 
 import streamlit as st
 
-from exam_db import get_student_summary
+from exam_db import get_previous_attempts, get_student_summary
 
 
 def show_my_results():
@@ -41,3 +41,32 @@ def show_my_results():
     with c4:
         st.metric("Last Test", last_test)
     st.divider()
+    st.subheader("📜 Recent Activity")
+
+
+attempts = get_previous_attempts(st.session_state.student_email)
+
+if not attempts:
+    st.info("No tests attempted yet.")
+else:
+    for row in attempts[:5]:
+        submitted = row["submitted_at"]
+
+        if submitted:
+            if isinstance(submitted, str):
+                submitted = datetime.fromisoformat(submitted)
+            submitted = submitted.strftime("%d-%m-%Y %I:%M %p")
+        else:
+            submitted = "-"
+
+        with st.container(border=True):
+            c1, c2, c3 = st.columns([4, 1, 2])
+
+            with c1:
+                st.write(f"**{row['subject']}**")
+
+            with c2:
+                st.write(f"**{row['percentage']}%**")
+
+            with c3:
+                st.write(submitted)
