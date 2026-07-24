@@ -11,6 +11,7 @@ from exam_db import (
 )
 from pages.exam.timer import render_timer
 from pages.result import show_result
+from utils import format_duration
 
 
 def show_test(
@@ -84,20 +85,6 @@ def show_test(
         )
 
         return
-
-
-def format_duration(seconds):
-
-    seconds = int(seconds or 0)
-
-    hours = seconds // 3600
-    minutes = (seconds % 3600) // 60
-    secs = seconds % 60
-
-    if hours:
-        return f"{hours}h {minutes}m"
-
-    return f"{minutes}m {secs}s"
 
 
 def show_home(

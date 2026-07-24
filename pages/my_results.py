@@ -3,13 +3,16 @@ from datetime import datetime
 import streamlit as st
 
 from exam_db import get_previous_attempts, get_student_summary
+from utils import format_duration
 
 
 def show_my_results():
     st.title("📊 My Results")
-    st.write("Welcome to My Results")
+    st.caption("View your test history, previous attempts and performance.")
+    st.divider()
     summary = get_student_summary(st.session_state.student_email)
     summary = get_student_summary(st.session_state.student_email)
+    previous_attempts = get_previous_attempts(st.session_state.student_email)
 
     total_tests = summary["total_tests"] or 0
     average_score = summary["average_percentage"] or 0
@@ -69,3 +72,36 @@ def show_my_results():
 
                 with c3:
                     st.write(submitted)
+    st.divider()
+    st.subheader("📂 Previous Attempts")
+
+    if previous_attempts:
+        for attempt in previous_attempts:
+            attempt_id = attempt["attempt_id"]
+            subject = attempt["subject"]
+            percentage = attempt["percentage"]
+            duration = format_duration(attempt["duration_seconds"])
+            date = attempt["submitted_at"][:10] if attempt["submitted_at"] else "-"
+
+            col1, col2 = st.columns([6, 1])
+
+            with col1:
+                st.write(
+                    f"📚 **{subject}** | "
+                    f"🎯 {percentage:.2f}% | "
+                    f"⏱ {duration} | "
+                    f"📅 {date}"
+                )
+
+            with col2:
+                if st.button(
+                    "👁",
+                    key=f"attempt_{attempt_id}",
+                ):
+                    st.session_state.review_attempt_id = attempt_id
+                    st.session_state.attempt_review_q = 0
+                    st.session_state.test_state = "attempt_review"
+                    st.rerun()
+
+    else:
+        st.info("No previous attempts.")
