@@ -334,11 +334,71 @@ def get_sections(text_name):
     sections = [row["tag_name"] for row in cursor.fetchall()]
 
     conn.close()
+    # Add option at the top
+    sections.insert(0, "Entire Samhita")
 
     return sections
 
 
 def get_questions_by_text_and_section(text_name, section_name):
+
+    if section_name == "Entire Samhita":
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        execute(
+            cursor,
+            """
+            SELECT
+                q.question_uid,
+                q.subject,
+                q.question,
+                q.option1,
+                q.option2,
+                q.option3,
+                q.option4,
+                q.answer,
+                q.explanation,
+                q.image
+
+             FROM questions q
+
+             JOIN question_tags qt
+                 ON q.question_uid = qt.question_uid
+
+             WHERE qt.tag_name = ?
+
+             ORDER BY q.question_uid
+             """,
+            (text_name,),
+        )
+
+        rows = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        questions = []
+
+        for row in rows:
+            questions.append(
+                {
+                    "question_uid": row["question_uid"],
+                    "subject": row["subject"],
+                    "question": row["question"],
+                    "options": [
+                        row["option1"],
+                        row["option2"],
+                        row["option3"],
+                        row["option4"],
+                    ],
+                    "answer": row["answer"],
+                    "explanation": row["explanation"],
+                    "image": row["image"],
+                }
+            )
+
+        return questions
 
     conn = get_connection()
     cursor = conn.cursor()
