@@ -101,6 +101,7 @@ def show_my_results():
                     st.session_state.review_attempt_id = attempt_id
                     st.session_state.attempt_review_q = 0
                     st.session_state.test_state = "attempt_review"
+                    st.session_state.student_page = "subject_tests"
                     st.rerun()
 
     else:
