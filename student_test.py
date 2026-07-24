@@ -11,7 +11,6 @@ from exam_db import (
 )
 from pages.exam.timer import render_timer
 from pages.result import show_result
-from utils import format_duration
 
 
 def show_test(
@@ -107,11 +106,6 @@ def show_home(
     elif not isinstance(overall, dict):
         overall = dict(overall)
 
-    tests_taken = overall.get("total_tests", 0) or 0
-    best_accuracy = float(overall.get("highest_percentage", 0) or 0)
-    average_accuracy = float(overall.get("average_percentage", 0) or 0)
-    average_time = int(overall.get("average_duration", 0) or 0)
-
     st.title("🏠 AIAPGET CBT")
 
     st.success(f"👋 Welcome {student_name}")
@@ -160,24 +154,6 @@ def show_home(
     # ==================================================
     # Statistics
     # ==================================================
-
-    st.divider()
-
-    st.subheader("📊 Your Statistics")
-
-    c1, c2, c3, c4 = st.columns(4)
-
-    with c1:
-        st.metric("Tests Taken", tests_taken)
-
-    with c2:
-        st.metric("Best Accuracy", f"{best_accuracy:.2f}%")
-
-    with c3:
-        st.metric("Average Accuracy", f"{average_accuracy:.2f}%")
-
-    with c4:
-        st.metric("Average Time", format_duration(average_time))
 
     # ==================================================
     # Recent Attempts
