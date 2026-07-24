@@ -1,6 +1,5 @@
 import os
 import random
-import sqlite3
 
 import psycopg
 from dotenv import find_dotenv, load_dotenv
@@ -23,27 +22,16 @@ DB_NAME = os.getenv("DB_NAME", "aiapget.db")
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 
-import time
-
-
 def get_connection():
 
-    # increment_connection()
-
-    start = time.perf_counter()
-
-    if DATABASE_TYPE == "postgres":
-        conn = psycopg.connect(
-            DATABASE_URL,
-            row_factory=dict_row,
-        )
-    else:
-        conn = sqlite3.connect(DB_NAME)
-        conn.row_factory = sqlite3.Row
-
-    print(f"Connection opened in {time.perf_counter() - start:.4f} sec")
-
-    return conn
+    return psycopg.connect(
+        host=os.getenv("DB_HOST"),
+        port=int(os.getenv("DB_PORT")),
+        dbname=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        row_factory=dict_row,
+    )
 
 
 def adapt_query(query):
@@ -279,3 +267,130 @@ def get_mock_questions(limit=100):
     random.shuffle(questions)
 
     return questions[:limit]
+
+
+def get_classical_texts():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    execute(
+        cursor,
+        """
+        SELECT DISTINCT tag_name
+        FROM question_tags
+        WHERE tag_name IN (
+            'Charaka Samhita',
+            'Sushruta Samhita',
+            'Ashtanga Hridaya',
+            'Ashtanga Sangraha',
+            'Madhava Nidana',
+            'Bhavaprakasha',
+            'Sharangadhara Samhita',
+            'Yoga Ratnakara'
+        )
+        ORDER BY tag_name
+        """,
+    )
+
+    texts = [row["tag_name"] for row in cursor.fetchall()]
+
+    conn.close()
+
+    return texts
+
+
+def get_sections(text_name):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    execute(
+        cursor,
+        """
+        SELECT DISTINCT qt2.tag_name
+
+        FROM question_tags qt1
+
+        JOIN question_tags qt2
+            ON qt1.question_uid = qt2.question_uid
+
+        WHERE qt1.tag_name = ?
+
+        AND qt2.tag_name LIKE '%Sthana'
+
+        ORDER BY qt2.tag_name
+        """,
+        (text_name,),
+    )
+
+    sections = [row["tag_name"] for row in cursor.fetchall()]
+
+    conn.close()
+
+    return sections
+
+
+def get_questions_by_text_and_section(text_name, section_name):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    execute(
+        cursor,
+        """
+        SELECT
+            q.question_uid,
+            q.subject,
+            q.question,
+            q.option1,
+            q.option2,
+            q.option3,
+            q.option4,
+            q.answer,
+            q.explanation,
+            q.image
+
+        FROM questions q
+
+        JOIN question_tags qt1
+            ON q.question_uid = qt1.question_uid
+
+        JOIN question_tags qt2
+            ON q.question_uid = qt2.question_uid
+
+        WHERE
+            qt1.tag_name = ?
+        AND
+            qt2.tag_name = ?
+
+        ORDER BY q.question_uid
+        """,
+        (text_name, section_name),
+    )
+
+    rows = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    questions = []
+
+    for row in rows:
+        questions.append(
+            {
+                "question_uid": row["question_uid"],
+                "subject": row["subject"],
+                "question": row["question"],
+                "options": [
+                    row["option1"],
+                    row["option2"],
+                    row["option3"],
+                    row["option4"],
+                ],
+                "answer": row["answer"],
+                "explanation": row["explanation"],
+                "image": row["image"],
+            }
+        )
+
+    return questions

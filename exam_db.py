@@ -2,6 +2,7 @@ from datetime import datetime
 
 from database import execute, get_connection
 
+
 DB_NAME = "aiapget.db"
 DB_VERSION = 1
 

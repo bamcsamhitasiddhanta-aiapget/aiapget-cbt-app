@@ -1,11 +1,7 @@
-from database import add_question_tag, get_question_tags
+from database import get_classical_texts, get_sections
 
-add_question_tag("Q000001", "Revision Test")
+print("\n===== Classical Texts =====")
+print(get_classical_texts())
 
-print(get_question_tags("Q000001"))
-from database import get_connection
-
-conn = get_connection()
-cur = conn.cursor()
-cur.execute("SELECT current_database();")
-print("Connected database:", cur.fetchone()[0])
+print("\n===== Charaka Samhita Sections =====")
+print(get_sections("Charaka Samhita"))

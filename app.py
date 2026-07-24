@@ -2,6 +2,7 @@ import streamlit as st
 from dotenv import find_dotenv, load_dotenv
 
 import admin
+import samhita_tests
 import student_dashboard
 import student_test
 import subject_tests
@@ -174,7 +175,7 @@ elif st.session_state.student_page == "mock_tests":
     st.info("🚧 Mock Tests - Coming Soon")
 
 elif st.session_state.student_page == "samhita_tests":
-    st.info("🚧 Samhita Tests - Coming Soon")
+    samhita_tests.show_samhita_tests()
 
 elif st.session_state.student_page == "results":
     st.info("🚧 Results - Coming Soon")
