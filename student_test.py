@@ -903,3 +903,4 @@ def reset_exam_session():
 
     st.session_state.result = None
     st.session_state.question_state = {}
+    st.session_state.test_state = "home"
