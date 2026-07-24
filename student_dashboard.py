@@ -112,7 +112,7 @@ Practice consistently. Success in AIAPGET comes one test at a time.
             "My Results",
             "View your previous test attempts and performance.",
             "View Results",
-            "results",
+            "my_results",
         )
 
         st.divider()

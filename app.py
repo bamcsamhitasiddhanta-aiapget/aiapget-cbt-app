@@ -177,8 +177,10 @@ elif st.session_state.student_page == "mock_tests":
 elif st.session_state.student_page == "samhita_tests":
     samhita_tests.show_samhita_tests()
 
-elif st.session_state.student_page == "results":
-    st.info("🚧 Results - Coming Soon")
+elif st.session_state.student_page == "my_results":
+    from pages import my_results
+
+    my_results.show_my_results()
 
 
 end_page_timer()
