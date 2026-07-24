@@ -60,8 +60,11 @@ def show_subject_tests():
         questions = get_questions_by_subject(selected_subject)
         st.session_state.mock_questions = None
 
-    # Start test only after a subject is selected
-    if selected_subject is not None:
+    # Allow attempt review even without selecting a subject
+    if (
+        selected_subject is not None
+        or st.session_state.get("test_state") == "attempt_review"
+    ):
         student_test.show_test(
             questions=questions,
             selected_subject=selected_subject,
