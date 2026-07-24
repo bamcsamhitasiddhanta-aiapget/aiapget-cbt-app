@@ -1,5 +1,3 @@
-import datetime
-
 import streamlit as st
 
 from exam_db import get_student_summary
