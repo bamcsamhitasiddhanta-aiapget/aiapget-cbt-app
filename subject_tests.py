@@ -46,7 +46,10 @@ def show_subject_tests():
     if st.session_state.get("test_type") in ["full_mock", "mini_mock"]:
         questions = st.session_state.mock_questions
 
-        selected_subject = "Mock Test"
+        selected_subject = st.session_state.get(
+            "mock_name",
+            "Mock Test",
+        )
 
     # ---------------------------------------
     # Subject Test

@@ -831,3 +831,5 @@ def reset_exam_session():
     st.session_state.result = None
     st.session_state.question_state = {}
     st.session_state.test_state = "home"
+    if "mock_name" in st.session_state:
+        del st.session_state["mock_name"]

@@ -58,6 +58,7 @@ def show_mock_tests():
 
             st.session_state.student_page = "subject_tests"
             st.session_state.test_state = "home"
+            st.session_state.mock_name = "Full AIAPGET Mock"
 
             st.rerun()
 
@@ -95,5 +96,6 @@ def show_mock_tests():
 
             st.session_state.student_page = "subject_tests"
             st.session_state.test_state = "home"
+            st.session_state.mock_name = "Mini AIAPGET Mock"
 
             st.rerun()
