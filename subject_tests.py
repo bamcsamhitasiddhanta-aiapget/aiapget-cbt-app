@@ -2,7 +2,6 @@ import streamlit as st
 
 import student_test
 from database import (
-    get_mock_questions,
     get_questions_by_subject,
     get_subjects,
 )
@@ -12,7 +11,6 @@ def show_subject_tests():
 
     # Get unique subjects
     subjects = get_subjects()
-    subjects.append("Full Mock Test")
 
     selected_subject = st.selectbox(
         "Select Subject",
@@ -38,23 +36,24 @@ def show_subject_tests():
         st.session_state.result_saved = False
 
         # Reset mock questions if needed
-        if selected_subject != "Full Mock Test":
-            st.session_state.mock_questions = None
-
+        st.session_state.mock_questions = None
         st.rerun()
 
-    # Filter logic
-    if selected_subject is None:
-        questions = []
+    # ---------------------------------------
+    # Mock Test
+    # ---------------------------------------
 
-    elif selected_subject == "Full Mock Test":
-        if (
-            "mock_questions" not in st.session_state
-            or st.session_state.mock_questions is None
-        ):
-            st.session_state.mock_questions = get_mock_questions(100)
-
+    if st.session_state.get("test_type") in ["full_mock", "mini_mock"]:
         questions = st.session_state.mock_questions
+
+        selected_subject = "Mock Test"
+
+    # ---------------------------------------
+    # Subject Test
+    # ---------------------------------------
+
+    elif selected_subject is None:
+        questions = []
 
     else:
         questions = get_questions_by_subject(selected_subject)
@@ -65,7 +64,6 @@ def show_subject_tests():
         selected_subject is not None
         or st.session_state.get("test_state") == "attempt_review"
     ):
-        st.session_state.test_type = "subject"
         student_test.show_test(
             questions=questions,
             selected_subject=selected_subject,
