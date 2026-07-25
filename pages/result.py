@@ -35,7 +35,9 @@ def show_result():
         st.write(f"**⏱ Time Taken :** {duration}")
     from datetime import datetime
 
-    st.caption(f"Completed on {datetime.now().strftime('%d %b %Y, %I:%M %p')}")
+    submitted = datetime.fromisoformat(result["submitted_at"])
+
+    st.caption(f"Completed on {submitted.strftime('%d %b %Y, %I:%M %p')}")
 
     st.divider()
     c1, c2, c3, c4 = st.columns(4)

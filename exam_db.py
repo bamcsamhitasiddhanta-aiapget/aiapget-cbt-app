@@ -2,7 +2,6 @@ from datetime import datetime
 
 from database import execute, get_connection
 
-
 DB_NAME = "aiapget.db"
 DB_VERSION = 1
 
@@ -216,6 +215,7 @@ def finish_attempt(
     score,
     percentage,
     duration_seconds,
+    submitted_at,
 ):
 
     conn = get_connection()
@@ -243,7 +243,7 @@ def finish_attempt(
             wrong,
             score,
             percentage,
-            datetime.now().isoformat(),
+            submitted_at,
             duration_seconds,
             attempt_id,
         ),

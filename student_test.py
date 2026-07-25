@@ -1,5 +1,6 @@
 import os
 import time
+from datetime import datetime
 
 import streamlit as st
 
@@ -589,6 +590,7 @@ def submit_exam(
     result = calculate_result(questions)
 
     duration_seconds = int(time.time() - st.session_state.start_time)
+    submitted_at = datetime.now().isoformat()
 
     finish_attempt(
         attempt_id=attempt_id,
@@ -599,6 +601,7 @@ def submit_exam(
         score=result["score"],
         percentage=result["percentage"],
         duration_seconds=duration_seconds,
+        submitted_at=submitted_at,
     )
 
     st.session_state.result = {
@@ -607,6 +610,7 @@ def submit_exam(
         "subject": selected_subject,
         "total_questions": len(questions),
         "duration_seconds": duration_seconds,
+        "submitted_at": submitted_at,
         **result,
     }
     st.session_state.test_state = "result"
