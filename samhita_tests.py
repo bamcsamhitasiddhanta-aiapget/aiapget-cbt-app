@@ -18,6 +18,7 @@ def show_samhita_tests():
         index=None,
         placeholder="Select Classical Text",
         key="text_select",
+        disabled=st.session_state.get("test_state", "home") != "home",
     )
 
     if selected_text is None:
@@ -31,6 +32,7 @@ def show_samhita_tests():
         index=None,
         placeholder="Select Section",
         key="section_select",
+        disabled=st.session_state.get("test_state", "home") != "home",
     )
 
     if selected_section is None:
