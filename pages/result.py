@@ -33,6 +33,9 @@ def show_result():
     with col2:
         st.write(f"**📚 Subject :** {result['subject']}")
         st.write(f"**⏱ Time Taken :** {duration}")
+    from datetime import datetime
+
+    st.caption(f"Completed on {datetime.now().strftime('%d %b %Y, %I:%M %p')}")
 
     st.divider()
     c1, c2, c3, c4 = st.columns(4)
@@ -52,8 +55,34 @@ def show_result():
                 st.caption(title)
     st.divider()
 
+    st.markdown("### 📋 Test Summary")
+
+    i1, i2, i3 = st.columns(3)
+
+    with i1:
+        st.metric("Questions", result["total_questions"])
+
+    with i2:
+        st.metric("Attempted", result["correct"] + result["wrong"])
+
+    with i3:
+        st.metric("Skipped", result["not_answered"])
+
+    # Performance Message
+    if result["percentage"] >= 95:
+        st.success("🌟 Outstanding Performance! You are exam ready.")
+    elif result["percentage"] >= 85:
+        st.success("🎉 Excellent Work! Keep up the consistency.")
+    elif result["percentage"] >= 70:
+        st.info("👏 Good Performance! A little more practice will help.")
+    elif result["percentage"] >= 50:
+        st.warning("📚 Fair Performance. Focus on your weak areas.")
+    else:
+        st.error("💪 Keep Practicing! Every test is a step toward improvement.")
+
     with st.container(border=True):
-        st.markdown("## ⭐ FINAL SCORE")
+        st.markdown("## 🏆 FINAL SCORE")
+        st.markdown(f"### {result['percentage']}% Accuracy")
 
         st.markdown(
             f"""
@@ -69,7 +98,7 @@ def show_result():
 
     with b1:
         if st.button(
-            "📄 Review Answers new",
+            "📄 Review Answers ",
             use_container_width=True,
         ):
             from exam_db import get_attempt_review
