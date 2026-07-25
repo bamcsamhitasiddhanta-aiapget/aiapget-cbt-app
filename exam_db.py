@@ -115,6 +115,7 @@ def create_attempt(
 
             score,
             percentage,
+            started_at,
             submitted_at,
 
             duration_seconds
