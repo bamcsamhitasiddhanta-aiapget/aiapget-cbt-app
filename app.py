@@ -172,7 +172,9 @@ elif st.session_state.student_page == "subject_tests":
     subject_tests.show_subject_tests()
 
 elif st.session_state.student_page == "mock_tests":
-    st.info("🚧 Mock Tests - Coming Soon")
+    from pages import mock_tests
+
+    mock_tests.show_mock_tests()
 
 elif st.session_state.student_page == "samhita_tests":
     samhita_tests.show_samhita_tests()
