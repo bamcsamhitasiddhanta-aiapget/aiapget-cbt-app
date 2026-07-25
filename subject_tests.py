@@ -65,6 +65,7 @@ def show_subject_tests():
         selected_subject is not None
         or st.session_state.get("test_state") == "attempt_review"
     ):
+        st.session_state.test_type = "subject"
         student_test.show_test(
             questions=questions,
             selected_subject=selected_subject,

@@ -7,7 +7,7 @@ from database import (
     get_sections,
 )
 
- 
+
 def show_samhita_tests():
 
     texts = get_classical_texts()
@@ -45,6 +45,7 @@ def show_samhita_tests():
         st.warning("No questions available.")
         return
 
+    st.session_state.test_type = "samhita"
     student_test.show_test(
         questions=questions,
         selected_subject=f"{selected_text} - {selected_section}",

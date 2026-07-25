@@ -12,6 +12,16 @@ from exam_db import (
 from pages.exam.timer import render_timer
 from pages.result import show_result
 
+# ---------------- Timer Configuration ---------------- #
+
+SECONDS_PER_QUESTION = 60
+
+FULL_MOCK_QUESTIONS = 120
+FULL_MOCK_TIME = 2 * 60 * 60  # 7200 seconds
+
+MINI_MOCK_QUESTIONS = 60
+MINI_MOCK_TIME = 60 * 60  # 3600 seconds
+
 
 def show_test(
     questions,
@@ -142,10 +152,18 @@ def show_home(
         st.session_state.test_state = "running"
         st.session_state.start_time = time.time()
 
-        total_time = 7200 if selected_subject == "Full Mock Test" else 30
-        # NEW
-        st.session_state.total_time = total_time
+        test_type = st.session_state.get("test_type", "subject")
 
+        if test_type == "full_mock":
+            total_time = FULL_MOCK_TIME
+
+        elif test_type == "mini_mock":
+            total_time = MINI_MOCK_TIME
+
+        else:
+            total_time = len(questions) * SECONDS_PER_QUESTION
+
+        st.session_state.total_time = total_time
         st.session_state.end_time = st.session_state.start_time + total_time
 
         st.session_state.current_q = 0
