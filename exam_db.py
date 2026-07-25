@@ -1,6 +1,5 @@
-from datetime import datetime
-
 from database import execute, get_connection
+from time_utils import current_time_iso
 
 DB_NAME = "aiapget.db"
 DB_VERSION = 1
@@ -117,7 +116,7 @@ def create_attempt(
             score,
             percentage,
 
-            started_at,
+            started_at=current_time_iso(),
             submitted_at,
 
             duration_seconds
@@ -141,7 +140,7 @@ def create_attempt(
             0,
             0,
             0,
-            datetime.now().isoformat(),
+            current_time_iso(),
             None,
             0,
         ),

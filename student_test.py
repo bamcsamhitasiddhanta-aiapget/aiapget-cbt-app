@@ -1,6 +1,5 @@
 import os
 import time
-from datetime import datetime
 
 import streamlit as st
 
@@ -12,6 +11,7 @@ from exam_db import (
 )
 from pages.exam.timer import render_timer
 from pages.result import show_result
+from time_utils import current_time_iso
 
 # ---------------- Timer Configuration ---------------- #
 
@@ -590,8 +590,7 @@ def submit_exam(
     result = calculate_result(questions)
 
     duration_seconds = int(time.time() - st.session_state.start_time)
-    submitted_at = datetime.now().isoformat()
-
+    submitted_at = current_time_iso()
     finish_attempt(
         attempt_id=attempt_id,
         answered=result["answered"],

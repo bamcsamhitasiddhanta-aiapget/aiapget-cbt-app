@@ -3,6 +3,7 @@ from datetime import datetime
 import streamlit as st
 
 from exam_db import get_previous_attempts, get_student_dashboard, get_student_summary
+from time_utils import format_timestamp
 from utils import format_duration
 
 
@@ -96,14 +97,7 @@ def show_my_results():
         st.info("No tests attempted yet.")
     else:
         for row in attempts[:5]:
-            submitted = row["submitted_at"]
-
-            if submitted:
-                if isinstance(submitted, str):
-                    submitted = datetime.fromisoformat(submitted)
-                submitted = submitted.strftime("%d-%m-%Y %I:%M %p")
-            else:
-                submitted = "-"
+            submitted = format_timestamp(row["submitted_at"])
 
             with st.container(border=True):
                 c1, c2, c3 = st.columns([4, 1, 2])

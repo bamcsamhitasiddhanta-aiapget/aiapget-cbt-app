@@ -33,11 +33,10 @@ def show_result():
     with col2:
         st.write(f"**📚 Subject :** {result['subject']}")
         st.write(f"**⏱ Time Taken :** {duration}")
-    from datetime import datetime
 
-    submitted = datetime.fromisoformat(result["submitted_at"])
+    from time_utils import format_timestamp
 
-    st.caption(f"Completed on {submitted.strftime('%d %b %Y, %I:%M %p')}")
+    st.caption(f"Completed on {format_timestamp(result['submitted_at'])}")
 
     st.divider()
     c1, c2, c3, c4 = st.columns(4)

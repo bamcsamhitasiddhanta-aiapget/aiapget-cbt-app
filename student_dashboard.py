@@ -3,6 +3,7 @@ from datetime import datetime
 import streamlit as st
 
 from exam_db import get_previous_attempts, get_student_summary
+from time_utils import format_timestamp
 
 
 def dashboard_card(icon, title, description, button_text, page_key):
@@ -122,14 +123,7 @@ Practice consistently. Success in AIAPGET comes one test at a time.
             st.info("No tests attempted yet.")
         else:
             for row in attempts[:5]:
-                submitted = row["submitted_at"]
-
-                if submitted:
-                    if isinstance(submitted, str):
-                        submitted = datetime.fromisoformat(submitted)
-                    submitted = submitted.strftime("%d-%m-%Y %I:%M %p")
-                else:
-                    submitted = "-"
+                submitted = format_timestamp(row["submitted_at"])
 
                 st.container(border=True)
 
