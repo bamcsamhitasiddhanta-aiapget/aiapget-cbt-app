@@ -115,8 +115,6 @@ def create_attempt(
 
             score,
             percentage,
-
-            started_at=current_time_iso(),
             submitted_at,
 
             duration_seconds
