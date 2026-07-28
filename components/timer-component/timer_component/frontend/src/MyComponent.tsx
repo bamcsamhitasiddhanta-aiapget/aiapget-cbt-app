@@ -42,15 +42,15 @@ const MyComponent: FC<MyComponentProps> = ({
     return () => clearInterval(timer);
   }, [end_time, setStateValue]);
 
-  const minutes = Math.floor(remaining / 60)
+  const hours = Math.floor(remaining / 3600)
+    .toString()
+    .padStart(2, "0");
+
+  const minutes = Math.floor((remaining % 3600) / 60)
     .toString()
     .padStart(2, "0");
 
   const seconds = (remaining % 60)
-    .toString()
-    .padStart(2, "0");
-
-  const hours = Math.floor(remaining / 3600)
     .toString()
     .padStart(2, "0");
 
