@@ -9,10 +9,10 @@ from exam_db import (
     get_previous_attempts,
     save_response,
 )
+from exam_ui.question import render_question
 from pages.exam.timer import render_timer
 from pages.result import show_result
 from time_utils import current_time_iso
-from ui.question import render_question
 
 # ---------------- Timer Configuration ---------------- #
 
