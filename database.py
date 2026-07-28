@@ -324,8 +324,7 @@ def get_sections(text_name):
 
         WHERE qt1.tag_name = ?
 
-        AND RIGHT(qt2.tag_name, 6) = 'Sthana'
-
+        AND qt2.tag_name ILIKE '%sthana'
         ORDER BY qt2.tag_name
         """,
         (text_name,),
