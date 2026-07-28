@@ -327,92 +327,143 @@ def show_running(
                 student_email,
             )
         st.stop()
+    # Main exam layout
+    left_col, right_col = st.columns([3, 1], gap="medium")
 
-    q = questions[st.session_state.current_q]
-    state = get_question_state(st.session_state.current_q)
+    with left_col:
+        q = questions[st.session_state.current_q]
 
-    state["visited"] = True
+        state = get_question_state(st.session_state.current_q)
+        state["visited"] = True
 
-    st.markdown(f"## Q{st.session_state.current_q + 1}")
+        st.markdown(f"## Q{st.session_state.current_q + 1}")
+        st.write(q["question"])
 
-    st.write(q["question"])
+        # ... keep all your existing code here ...
 
-    if q.get("image"):
-        if os.path.exists(q["image"]):
-            st.image(q["image"], width=450)
-    current_state = st.session_state.question_state.get(
-        st.session_state.current_q,
-        {},
-    )
+        q = questions[st.session_state.current_q]
+        state = get_question_state(st.session_state.current_q)
 
-    saved_answer = current_state.get("answer", None)
+        state["visited"] = True
 
-    index = None
+        st.markdown(f"## Q{st.session_state.current_q + 1}")
 
-    # Current question state
-    state = get_question_state(st.session_state.current_q)
+        st.write(q["question"])
 
-    saved_answer = state["answer"]
+        if q.get("image"):
+            if os.path.exists(q["image"]):
+                st.image(q["image"], width=450)
+        current_state = st.session_state.question_state.get(
+            st.session_state.current_q,
+            {},
+        )
 
-    index = None
+        saved_answer = current_state.get("answer", None)
 
-    if saved_answer in q["options"]:
-        index = q["options"].index(saved_answer)
+        index = None
 
-    radio_key = f"q_{st.session_state.current_q}"
+        # Current question state
+        state = get_question_state(st.session_state.current_q)
 
-    # answer = st.radio(
-    #    "",
-    #    q["options"],
-    #    index=index,
-    #    key=radio_key,
-    # )
+        saved_answer = state["answer"]
 
-    # Save only after selection
-    # if answer is not None:
-    #    save_answer(
-    #       st.session_state.current_q,
-    #        answer,
-    #    )
-    answer = option_selector(
-        st.session_state.current_q,
-        q["options"],
-    )
+        index = None
 
-    st.divider()
+        if saved_answer in q["options"]:
+            index = q["options"].index(saved_answer)
 
-    col1, col2, col3, col4, col5 = st.columns(5)
+        radio_key = f"q_{st.session_state.current_q}"
 
-    with col1:
-        if st.button("⬅ Previous", use_container_width=True):
-            if st.session_state.current_q > 0:
-                st.session_state.current_q -= 1
+        # answer = st.radio(
+        #    "",
+        #    q["options"],
+        #    index=index,
+        #    key=radio_key,
+        # )
+
+        # Save only after selection
+        # if answer is not None:
+        #    save_answer(
+        #       st.session_state.current_q,
+        #        answer,
+        #    )
+        answer = option_selector(
+            st.session_state.current_q,
+            q["options"],
+        )
+
+        st.divider()
+
+        col1, col2, col3, col4, col5 = st.columns(5)
+
+        with col1:
+            if st.button("⬅ Previous", use_container_width=True):
+                if st.session_state.current_q > 0:
+                    st.session_state.current_q -= 1
+                    st.rerun()
+
+        with col2:
+            if st.button(
+                "🗑 Clear Response",
+                use_container_width=True,
+            ):
+                clear_answer(
+                    st.session_state.current_q,
+                )
+
                 st.rerun()
 
-    with col2:
-        if st.button(
-            "🗑 Clear Response",
-            use_container_width=True,
-        ):
-            clear_answer(
-                st.session_state.current_q,
-            )
+        with col3:
+            if st.button(
+                "🟨 Save & Mark Review",
+                use_container_width=True,
+            ):
+                if answer is None:
+                    st.warning("⚠ Please select an option.")
 
-            st.rerun()
+                else:
+                    save_answer(
+                        st.session_state.current_q,
+                        answer,
+                    )
 
-    with col3:
-        if st.button(
-            "🟨 Save & Mark Review",
-            use_container_width=True,
-        ):
-            if answer is None:
-                st.warning("⚠ Please select an option.")
+                    toggle_review(
+                        st.session_state.current_q,
+                    )
 
-            else:
-                save_answer(
-                    st.session_state.current_q,
-                    answer,
-                )
+                    if st.session_state.current_q < len(questions) - 1:
+                        st.session_state.current_q += 1
+
+                    st.rerun()
+
+        with col4:
+            if st.button(
+                "💾 Save & Next",
+                use_container_width=True,
+            ):
+                if answer is None:
+                    st.warning("⚠ Please select an option.")
+
+                else:
+                    save_answer(
+                        st.session_state.current_q,
+                        answer,
+                    )
+
+                    if st.session_state.current_q < len(questions) - 1:
+                        st.session_state.current_q += 1
+
+                    st.rerun()
+        with col5:
+            if st.button(
+                "🟪 Mark Review & Next",
+                use_container_width=True,
+            ):
+                if answer is not None:
+                    save_answer(
+                        st.session_state.current_q,
+                        answer,
+                    )
 
                 toggle_review(
                     st.session_state.current_q,
@@ -422,103 +473,77 @@ def show_running(
                     st.session_state.current_q += 1
 
                 st.rerun()
+        st.divider()
 
-    with col4:
-        if st.button(
-            "💾 Save & Next",
-            use_container_width=True,
-        ):
-            if answer is None:
-                st.warning("⚠ Please select an option.")
+    with right_col:
+        st.subheader("🗂 Question Palette")
 
-            else:
-                save_answer(
-                    st.session_state.current_q,
-                    answer,
-                )
+        # existing palette code
 
-                if st.session_state.current_q < len(questions) - 1:
-                    st.session_state.current_q += 1
+        st.divider()
 
-                st.rerun()
-    with col5:
-        if st.button(
-            "🟪 Mark Review & Next",
-            use_container_width=True,
-        ):
-            if answer is not None:
-                save_answer(
-                    st.session_state.current_q,
-                    answer,
-                )
+        col_submit = st.columns([4, 1])[1]
 
-            toggle_review(
-                st.session_state.current_q,
-            )
+        with col_submit:
+            ...
 
-            if st.session_state.current_q < len(questions) - 1:
-                st.session_state.current_q += 1
+        st.subheader("🗂 Question Palette")
 
-            st.rerun()
-    st.divider()
+        NUM_COLS = 5
 
-    st.subheader("🗂 Question Palette")
+        for start in range(0, len(questions), NUM_COLS):
+            cols = st.columns(NUM_COLS)
 
-    NUM_COLS = 5
+            for i in range(NUM_COLS):
+                q_no = start + i
 
-    for start in range(0, len(questions), NUM_COLS):
-        cols = st.columns(NUM_COLS)
+                if q_no >= len(questions):
+                    continue
 
-        for i in range(NUM_COLS):
-            q_no = start + i
+                state = get_question_state(q_no)
 
-            if q_no >= len(questions):
-                continue
+                # Current Question
+                if q_no == st.session_state.current_q:
+                    icon = "🔵"
 
-            state = get_question_state(q_no)
+                # Answered + Review
+                elif state["review"] and state["answer"] is not None:
+                    icon = "🟪🟩"
 
-            # Current Question
-            if q_no == st.session_state.current_q:
-                icon = "🔵"
+                # Review only
+                elif state["review"]:
+                    icon = "🟪"
 
-            # Answered + Review
-            elif state["review"] and state["answer"] is not None:
-                icon = "🟪🟩"
+                # Answered
+                elif state.get("answer") is not None:
+                    icon = "🟩"
 
-            # Review only
-            elif state["review"]:
-                icon = "🟪"
+                # Visited but Not Answered
+                elif state.get("visited", False):
+                    icon = "🟧"
 
-            # Answered
-            elif state.get("answer") is not None:
-                icon = "🟩"
+                # Not Visited
+                else:
+                    icon = "⬜"
 
-            # Visited but Not Answered
-            elif state.get("visited", False):
-                icon = "🟧"
+                if cols[i].button(
+                    f"{icon} {q_no + 1}",
+                    key=f"palette_{q_no}",
+                    use_container_width=True,
+                ):
+                    st.session_state.current_q = q_no
+                    st.rerun()
+        st.divider()
+        col_submit = st.columns([4, 1])[1]
 
-            # Not Visited
-            else:
-                icon = "⬜"
-
-            if cols[i].button(
-                f"{icon} {q_no + 1}",
-                key=f"palette_{q_no}",
+        with col_submit:
+            if st.button(
+                "🔴 Submit Test",
                 use_container_width=True,
             ):
-                st.session_state.current_q = q_no
+                st.session_state.test_state = "confirm_submit"
+
                 st.rerun()
-    st.divider()
-    col_submit = st.columns([4, 1])[1]
-
-    with col_submit:
-        if st.button(
-            "🔴 Submit Test",
-            use_container_width=True,
-        ):
-            st.session_state.test_state = "confirm_submit"
-
-            st.rerun()
 
 
 def submit_exam(
