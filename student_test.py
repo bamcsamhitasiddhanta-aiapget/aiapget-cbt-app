@@ -9,6 +9,7 @@ from exam_db import (
     get_previous_attempts,
     save_response,
 )
+from exam_ui.options import render_options
 from exam_ui.question import render_question
 from pages.exam.timer import render_timer
 from pages.result import show_result
@@ -343,43 +344,11 @@ def show_running(
         )
 
         q = questions[st.session_state.current_q]
-        current_state = st.session_state.question_state.get(
-            st.session_state.current_q,
-            {},
-        )
-
-        saved_answer = current_state.get("answer", None)
-
-        index = None
-
-        # Current question state
-        state = get_question_state(st.session_state.current_q)
-
-        saved_answer = state["answer"]
-
-        index = None
-
-        if saved_answer in q["options"]:
-            index = q["options"].index(saved_answer)
-
-        radio_key = f"q_{st.session_state.current_q}"
-
-        # answer = st.radio(
-        #    "",
-        #    q["options"],
-        #    index=index,
-        #    key=radio_key,
-        # )
-
-        # Save only after selection
-        # if answer is not None:
-        #    save_answer(
-        #       st.session_state.current_q,
-        #        answer,
-        #    )
-        answer = option_selector(
-            st.session_state.current_q,
-            q["options"],
+        answer = render_options(
+            current_q=st.session_state.current_q,
+            options=q["options"],
+            get_question_state=get_question_state,
+            option_selector=option_selector,
         )
 
         st.divider()
