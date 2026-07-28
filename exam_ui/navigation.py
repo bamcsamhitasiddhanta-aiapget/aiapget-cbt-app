@@ -3,7 +3,6 @@ import streamlit as st
 
 def render_navigation(
     answer,
-    current_q,
     total_questions,
     save_answer,
     clear_answer,
