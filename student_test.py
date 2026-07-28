@@ -331,14 +331,6 @@ def show_running(
     left_col, right_col = st.columns([3, 1], gap="medium")
 
     with left_col:
-        q = questions[st.session_state.current_q]
-
-        state = get_question_state(st.session_state.current_q)
-        state["visited"] = True
-
-        st.markdown(f"## Q{st.session_state.current_q + 1}")
-        st.write(q["question"])
-
         # ... keep all your existing code here ...
 
         q = questions[st.session_state.current_q]
@@ -476,17 +468,6 @@ def show_running(
         st.divider()
 
     with right_col:
-        st.subheader("🗂 Question Palette")
-
-        # existing palette code
-
-        st.divider()
-
-        col_submit = st.columns([4, 1])[1]
-
-        with col_submit:
-            ...
-
         st.subheader("🗂 Question Palette")
 
         NUM_COLS = 5
