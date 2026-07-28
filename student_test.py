@@ -12,6 +12,7 @@ from exam_db import (
 from pages.exam.timer import render_timer
 from pages.result import show_result
 from time_utils import current_time_iso
+from ui.question import render_question
 
 # ---------------- Timer Configuration ---------------- #
 
@@ -333,18 +334,15 @@ def show_running(
     with left_col:
         # ... keep all your existing code here ...
 
-        q = questions[st.session_state.current_q]
         state = get_question_state(st.session_state.current_q)
-
         state["visited"] = True
 
-        st.markdown(f"## Q{st.session_state.current_q + 1}")
+        render_question(
+            questions,
+            st.session_state.current_q,
+        )
 
-        st.write(q["question"])
-
-        if q.get("image"):
-            if os.path.exists(q["image"]):
-                st.image(q["image"], width=450)
+        q = questions[st.session_state.current_q]
         current_state = st.session_state.question_state.get(
             st.session_state.current_q,
             {},
