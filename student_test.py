@@ -9,6 +9,12 @@ from exam_db import (
     get_previous_attempts,
     save_response,
 )
+from exam_ui.exam_state import (
+    clear_answer,
+    get_question_state,
+    save_answer,
+    toggle_review,
+)
 from exam_ui.navigation import render_navigation
 from exam_ui.options import render_options
 from exam_ui.question import render_question
@@ -221,47 +227,6 @@ def show_home(
     ):
         st.session_state.clear()
         st.rerun()
-
-
-def get_question_state(q_no):
-    """Return state for a question."""
-
-    if q_no not in st.session_state.question_state:
-        st.session_state.question_state[q_no] = {
-            "visited": False,
-            "answer": None,
-            "review": False,
-        }
-
-    return st.session_state.question_state[q_no]
-
-
-def save_answer(q_no, answer):
-
-    state = get_question_state(q_no)
-
-    state["visited"] = True
-
-    if answer:
-        state["answer"] = answer
-    else:
-        state["answer"] = None
-
-
-def toggle_review(q_no):
-
-    state = get_question_state(q_no)
-
-    state["visited"] = True
-    state["review"] = not state["review"]
-
-
-def clear_answer(q_no):
-
-    state = get_question_state(q_no)
-
-    state["visited"] = True
-    state["answer"] = None
 
 
 def option_selector(q_no, options):
