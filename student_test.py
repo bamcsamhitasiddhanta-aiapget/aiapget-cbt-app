@@ -4,10 +4,7 @@ import time
 import streamlit as st
 
 from exam_db import (
-    create_attempt,
-    finish_attempt,
     get_previous_attempts,
-    save_response,
 )
 from exam_ui.exam_state import (
     clear_answer,
@@ -19,9 +16,10 @@ from exam_ui.navigation import render_navigation
 from exam_ui.options import render_options
 from exam_ui.palette import render_palette
 from exam_ui.question import render_question
+from exam_ui.submit import submit_exam
+from exam_ui.summary import show_submit_confirmation
 from pages.exam.timer import render_timer
 from pages.result import show_result
-from time_utils import current_time_iso
 
 # ---------------- Timer Configuration ---------------- #
 
@@ -76,12 +74,22 @@ def show_test(
         )
         return
     if st.session_state.test_state == "confirm_submit":
-        show_submit_confirmation(
+        action = show_submit_confirmation(
             questions,
-            selected_subject,
-            student_name,
-            student_email,
+            get_question_state,
         )
+
+        if action == "back":
+            st.session_state.test_state = "running"
+            st.rerun()
+
+        elif action == "submit":
+            submit_exam(
+                questions,
+                selected_subject,
+                student_name,
+                student_email,
+            )
     if st.session_state.test_state == "result":
         show_result()
         return
@@ -329,170 +337,6 @@ def show_running(
         if render_palette(questions, get_question_state):
             st.session_state.test_state = "confirm_submit"
             st.rerun()
-
-
-def submit_exam(
-    questions,
-    selected_subject,
-    student_name,
-    student_email,
-):
-    if not st.session_state.submitted:
-        st.session_state.submitted = True
-    else:
-        return
-
-    total = len(questions)
-
-    answered = 0
-    review = 0
-    answered_review = 0
-    visited = 0
-
-    for q_no in range(total):
-        state = get_question_state(q_no)
-
-        if state["visited"]:
-            visited += 1
-
-        if state["answer"] is not None:
-            answered += 1
-
-        if state["review"]:
-            review += 1
-
-        if state["review"] and state["answer"] is not None:
-            answered_review += 1
-
-    not_answered = visited - answered
-
-    attempt_id = create_attempt(
-        student_email,
-        student_name,
-        selected_subject,
-        len(questions),
-        answered,
-        not_answered,
-        review,
-        answered_review,
-    )
-
-    st.session_state.attempt_id = attempt_id
-
-    for q_no, q in enumerate(questions):
-        state = get_question_state(q_no)
-
-        selected_answer = state["answer"]
-        correct_answer = q["answer"]
-
-        save_response(
-            attempt_id=attempt_id,
-            question_uid=q["question_uid"],
-            question_no=q_no + 1,
-            subject=q["subject"],
-            selected_answer=selected_answer,
-            correct_answer=correct_answer,
-            is_correct=int(selected_answer == correct_answer),
-            review=state["review"],
-            visited=state["visited"],
-        )
-
-    result = calculate_result(questions)
-
-    duration_seconds = int(time.time() - st.session_state.start_time)
-    submitted_at = current_time_iso()
-    finish_attempt(
-        attempt_id=attempt_id,
-        answered=result["answered"],
-        not_answered=result["not_answered"],
-        correct=result["correct"],
-        wrong=result["wrong"],
-        score=result["score"],
-        percentage=result["percentage"],
-        duration_seconds=duration_seconds,
-        submitted_at=submitted_at,
-    )
-
-    st.session_state.result = {
-        "student_name": student_name,
-        "student_email": student_email,
-        "subject": selected_subject,
-        "total_questions": len(questions),
-        "duration_seconds": duration_seconds,
-        "submitted_at": submitted_at,
-        **result,
-    }
-    st.session_state.test_state = "result"
-
-    st.rerun()
-
-
-def show_submit_confirmation(
-    questions,
-    selected_subject,
-    student_name,
-    student_email,
-):
-
-    total = len(questions)
-
-    answered = 0
-    review = 0
-    answered_review = 0
-    visited = 0
-
-    for q_no in range(total):
-        state = get_question_state(q_no)
-
-        if state["visited"]:
-            visited += 1
-
-        if state["answer"] is not None:
-            answered += 1
-
-        if state["review"]:
-            review += 1
-
-        if state["review"] and state["answer"] is not None:
-            answered_review += 1
-
-    not_answered = visited - answered
-
-    not_visited = total - visited
-
-    st.title("Submit Test")
-
-    st.warning("Once submitted you cannot modify your answers.")
-
-    st.write(f"Total Questions : {total}")
-    st.write(f"Answered : {answered}")
-    st.write(f"Not Answered : {not_answered}")
-    st.write(f"Marked for Review : {review}")
-    st.write(f"Answered & Review : {answered_review}")
-    st.write(f"Not Visited : {not_visited}")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        if st.button(
-            "⬅ Back to Test",
-            use_container_width=True,
-        ):
-            st.session_state.test_state = "running"
-
-            st.rerun()
-
-    with col2:
-        if st.button(
-            "✅ Submit Final",
-            use_container_width=True,
-        ):
-            submit_exam(
-                questions,
-                selected_subject,
-                student_name,
-                student_email,
-            )
 
 
 def calculate_result(questions):
