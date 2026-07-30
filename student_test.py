@@ -17,6 +17,7 @@ from exam_ui.exam_state import (
 )
 from exam_ui.navigation import render_navigation
 from exam_ui.options import render_options
+from exam_ui.palette import render_palette
 from exam_ui.question import render_question
 from pages.exam.timer import render_timer
 from pages.result import show_result
@@ -325,63 +326,9 @@ def show_running(
             toggle_review=toggle_review,
         )
     with right_col:
-        st.subheader("🗂 Question Palette")
-
-        NUM_COLS = 5
-
-        for start in range(0, len(questions), NUM_COLS):
-            cols = st.columns(NUM_COLS)
-
-            for i in range(NUM_COLS):
-                q_no = start + i
-
-                if q_no >= len(questions):
-                    continue
-
-                state = get_question_state(q_no)
-
-                # Current Question
-                if q_no == st.session_state.current_q:
-                    icon = "🔵"
-
-                # Answered + Review
-                elif state["review"] and state["answer"] is not None:
-                    icon = "🟪🟩"
-
-                # Review only
-                elif state["review"]:
-                    icon = "🟪"
-
-                # Answered
-                elif state.get("answer") is not None:
-                    icon = "🟩"
-
-                # Visited but Not Answered
-                elif state.get("visited", False):
-                    icon = "🟧"
-
-                # Not Visited
-                else:
-                    icon = "⬜"
-
-                if cols[i].button(
-                    f"{icon} {q_no + 1}",
-                    key=f"palette_{q_no}",
-                    use_container_width=True,
-                ):
-                    st.session_state.current_q = q_no
-                    st.rerun()
-        st.divider()
-        col_submit = st.columns([4, 1])[1]
-
-        with col_submit:
-            if st.button(
-                "🔴 Submit Test",
-                use_container_width=True,
-            ):
-                st.session_state.test_state = "confirm_submit"
-
-                st.rerun()
+        if render_palette(questions, get_question_state):
+            st.session_state.test_state = "confirm_submit"
+            st.rerun()
 
 
 def submit_exam(
