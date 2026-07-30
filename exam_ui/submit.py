@@ -4,6 +4,7 @@ import streamlit as st
 
 from exam_db import create_attempt, finish_attempt, save_response
 from exam_ui.exam_state import get_question_state
+from exam_ui.scoring import calculate_result
 from time_utils import current_time_iso
 
 
