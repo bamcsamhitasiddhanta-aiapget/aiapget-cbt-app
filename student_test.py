@@ -16,6 +16,7 @@ from exam_ui.navigation import render_navigation
 from exam_ui.options import render_options
 from exam_ui.palette import render_palette
 from exam_ui.question import render_question
+from exam_ui.question_summary import render_question_summary
 from exam_ui.submit import submit_exam
 from exam_ui.summary import show_submit_confirmation
 from pages.exam.timer import render_timer
@@ -334,7 +335,15 @@ def show_running(
             toggle_review=toggle_review,
         )
     with right_col:
-        if render_palette(questions, get_question_state):
+        render_question_summary(
+            questions,
+            get_question_state,
+        )
+
+        if render_palette(
+            questions,
+            get_question_state,
+        ):
             st.session_state.test_state = "confirm_submit"
             st.rerun()
 
