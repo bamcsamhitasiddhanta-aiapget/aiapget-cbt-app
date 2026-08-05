@@ -9,6 +9,7 @@ import subject_tests
 from admin_database import get_maintenance_mode, get_registration_enabled
 from db_utils import admin_login, login_student, register_student
 from developer_monitor import *
+from theme import apply_theme
 
 dotenv_path = find_dotenv()
 
@@ -26,7 +27,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-from theme import apply_theme
 
 apply_theme()
 # exam_db.create_exam_tables()

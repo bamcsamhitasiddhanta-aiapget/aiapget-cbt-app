@@ -13,19 +13,31 @@ def apply_theme():
 
     /* Reduce top whitespace */
     .block-container{
-        padding-top:1.2rem;
+        padding-top:1rem;
         padding-bottom:1rem;
         padding-left:2rem;
         padding-right:2rem;
+        max-width:1600px;
     }
 
+    .stApp{
+       background:#F5F7FB;
+    }
     /* Buttons */
     div.stButton > button{
         width:100%;
-        border-radius:10px;
-        height:46px;
-        font-size:16px;
+        height:48px;
+        border-radius:12px;
+        font-size:15px;
         font-weight:600;
+        border:1px solid #D1D5DB;
+        background:#FFFFFF;
+        transition:all .2s ease;
+    }
+
+    div.stButton > button:hover{
+        border-color:#2563EB;
+        box-shadow:0 4px 10px rgba(37,99,235,.15);
     }
 
     /* Input boxes */
@@ -43,11 +55,12 @@ def apply_theme():
 
     /* Cards */
     .card{
-        padding:20px;
-        border-radius:12px;
-        background:white;
-        border:1px solid #EAEAEA;
-        box-shadow:0 2px 6px rgba(0,0,0,.05);
+        background:#FFFFFF;
+        border:1px solid #E5E7EB;
+        border-radius:16px;
+        padding:18px;
+        margin-bottom:18px;
+        box-shadow:0 6px 16px rgba(0,0,0,.06);
     }
 
     </style>
