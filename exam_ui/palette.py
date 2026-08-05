@@ -59,13 +59,10 @@ def render_palette(questions, get_question_state):
 
     st.divider()
 
-    col_submit = st.columns([4, 1])[1]
-
-    with col_submit:
-        if st.button(
-            "🔴 Submit Test",
-            use_container_width=True,
-        ):
-            return True
+    if st.button(
+        "🔴 Submit Test",
+        use_container_width=True,
+    ):
+        return True
 
     return False
