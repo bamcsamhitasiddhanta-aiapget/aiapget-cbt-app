@@ -305,7 +305,7 @@ def show_running(
             )
         st.stop()
     # Main exam layout
-    left_col, right_col = st.columns([3, 1], gap="medium")
+    left_col, right_col = st.columns([2.8, 1.2], gap="large")
 
     with left_col:
         # ... keep all your existing code here ...
@@ -337,8 +337,6 @@ def show_running(
         if render_palette(questions, get_question_state):
             st.session_state.test_state = "confirm_submit"
             st.rerun()
-
-
 
 
 def show_review():
