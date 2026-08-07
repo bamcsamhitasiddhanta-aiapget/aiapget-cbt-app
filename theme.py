@@ -64,36 +64,57 @@ def apply_theme():
     }
 
     /* ===========================================
-       EXAM DASHBOARD
+        DASHBOARD CARD
     =========================================== */
 
-    .exam-dashboard{
-        background:#ffffff;
-        border-radius:18px;
-        border:1px solid #e8edf4;
-        box-shadow:0 8px 24px rgba(15,23,42,.08);
-        padding:22px;
-        margin-bottom:20px;
+    .dashboard-card{
+        background:#FFFFFF;
+        border:1px solid #E5E7EB;
+        border-radius:16px;
+        padding:18px;
+        margin-bottom:18px;
+        box-shadow:0 6px 16px rgba(0,0,0,.06);
     }
 
     .dashboard-title{
         font-size:24px;
         font-weight:700;
-        color:#1f2937;
-        margin-bottom:20px;
+        color:#2F3640;
         text-align:center;
+        margin-bottom:10px;
     }
 
-    .dashboard-section{
-        padding:18px 0;
-        border-bottom:1px solid #eef2f7;
+    .dashboard-subtitle{
+        font-size:18px;
+        font-weight:600;
+        color:#374151;
+        margin-bottom:12px;
     }
 
-    .dashboard-section:last-child{
-        border-bottom:none;
+    .dashboard-divider{
+        border-top:1px solid #ECEFF5;
+        margin:16px 0;
     }
 
     </style>
     """,
+        unsafe_allow_html=True,
+    )
+
+def dashboard_card_start(title):
+    st.markdown(
+        f"""
+        <div class="dashboard-card">
+            <div class="dashboard-title">
+                {title}
+            </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def dashboard_card_end():
+    st.markdown(
+        "</div>",
         unsafe_allow_html=True,
     )

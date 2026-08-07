@@ -1,6 +1,7 @@
 import streamlit as st
 
 from exam_ui.palette import render_palette
+from exam_ui.progress import render_progress
 from exam_ui.question_summary import render_question_summary
 
 
@@ -23,7 +24,12 @@ def render_dashboard(
     )
 
     # Progress card
-    # (Coming next)
+    render_progress(
+        questions,
+        get_question_state,
+    )
+
+    st.divider()
 
     # Question Summary
     render_question_summary(
