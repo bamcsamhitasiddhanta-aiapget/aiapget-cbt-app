@@ -63,6 +63,36 @@ def apply_theme():
         box-shadow:0 6px 16px rgba(0,0,0,.06);
     }
 
+    /* ===========================================
+       EXAM DASHBOARD
+    =========================================== */
+
+    .exam-dashboard{
+        background:#ffffff;
+        border-radius:18px;
+        border:1px solid #e8edf4;
+        box-shadow:0 8px 24px rgba(15,23,42,.08);
+        padding:22px;
+        margin-bottom:20px;
+    }
+
+    .dashboard-title{
+        font-size:24px;
+        font-weight:700;
+        color:#1f2937;
+        margin-bottom:20px;
+        text-align:center;
+    }
+
+    .dashboard-section{
+        padding:18px 0;
+        border-bottom:1px solid #eef2f7;
+    }
+
+    .dashboard-section:last-child{
+        border-bottom:none;
+    }
+
     </style>
     """,
         unsafe_allow_html=True,
