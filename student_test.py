@@ -341,7 +341,8 @@ def show_running(
 
         if submit:
             st.session_state.test_state = "confirm_submit"
-        st.rerun()
+            st.rerun()
+        return
 
 
 def show_review():
