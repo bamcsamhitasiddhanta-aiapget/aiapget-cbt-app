@@ -10,26 +10,23 @@ def render_dashboard(
     get_question_state,
 ):
     """
-    Render the complete exam dashboard.
+    Render the complete right-side exam dashboard.
     """
 
     st.markdown(
         """
-        <div class="exam-dashboard">
-            <div class="dashboard-title">
-                📝 Exam Dashboard
-            </div>
+        <div class="dashboard-title">
+            📝 Exam Dashboard
+        </div>
         """,
         unsafe_allow_html=True,
     )
 
-    # Progress card
+    # Progress
     render_progress(
         questions,
         get_question_state,
     )
-
-    st.divider()
 
     # Question Summary
     render_question_summary(
@@ -43,11 +40,6 @@ def render_dashboard(
     submit = render_palette(
         questions,
         get_question_state,
-    )
-
-    st.markdown(
-        "</div>",
-        unsafe_allow_html=True,
     )
 
     return submit
