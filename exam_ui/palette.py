@@ -70,21 +70,11 @@ def render_palette(questions, get_question_state):
     with legend_col1:
         st.caption("🟢 Answered")
         st.caption("🟣 Review")
+        st.caption("🟣🟢 Answered + Review")
 
     with legend_col2:
         st.caption("🟠 Not Answered")
         st.caption("⬜ Not Visited")
-
-    st.divider()
-
-    # -----------------------------------------
-    # Submit
-    # -----------------------------------------
-
-    if st.button(
-        "🔴 Submit Test",
-        use_container_width=True,
-    ):
-        return True
+        st.caption("🔵 Current Question")
 
     return False

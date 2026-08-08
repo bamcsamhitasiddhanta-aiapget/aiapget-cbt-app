@@ -9,9 +9,6 @@ def render_dashboard(
     questions,
     get_question_state,
 ):
-    """
-    Render the complete right-side exam dashboard.
-    """
 
     st.markdown(
         """
@@ -22,13 +19,30 @@ def render_dashboard(
         unsafe_allow_html=True,
     )
 
-    # Progress
+    # =========================================
+    # QUESTION PALETTE
+    # =========================================
+
+    render_palette(
+        questions,
+        get_question_state,
+    )
+
+    st.divider()
+
+    # =========================================
+    # PROGRESS
+    # =========================================
+
     render_progress(
         questions,
         get_question_state,
     )
 
-    # Question Summary
+    # =========================================
+    # SUMMARY
+    # =========================================
+
     render_question_summary(
         questions,
         get_question_state,
@@ -36,10 +50,14 @@ def render_dashboard(
 
     st.divider()
 
-    # Question Palette
-    submit = render_palette(
-        questions,
-        get_question_state,
-    )
+    # =========================================
+    # SUBMIT
+    # =========================================
 
-    return submit
+    if st.button(
+        "🔴 Submit Test",
+        use_container_width=True,
+    ):
+        return True
+
+    return False
