@@ -5,9 +5,7 @@ def render_progress(
     questions,
     get_question_state,
 ):
-    """
-    Render exam progress.
-    """
+    """Render the exam progress card."""
 
     total = len(questions)
 
@@ -20,11 +18,37 @@ def render_progress(
             answered += 1
 
     progress = answered / total if total else 0
+    percentage = int(progress * 100)
 
-    st.subheader("📈 Exam Progress")
+    st.markdown(
+        f"""
+        <div class="progress-card">
 
-    st.progress(progress)
+            <div class="progress-header">
+                <span>📈 Exam Progress</span>
+                <span class="progress-percentage">
+                    {percentage}%
+                </span>
+            </div>
 
-    st.write(f"**{answered} / {total} Questions Answered**")
+            <div class="progress-track">
+                <div
+                    class="progress-fill"
+                    style="width:{percentage}%;">
+                </div>
+            </div>
 
-    st.caption(f"{progress * 100:.0f}% Completed")
+            <div class="progress-footer">
+                <span>
+                    {answered} / {total} Questions
+                </span>
+
+                <span>
+                    {percentage}% Completed
+                </span>
+            </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )

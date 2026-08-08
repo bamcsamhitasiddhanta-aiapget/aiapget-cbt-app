@@ -96,10 +96,63 @@ def apply_theme():
         margin:16px 0;
     }
 
+    /* ===========================================
+       EXAM PROGRESS CARD
+    =========================================== */
+
+    .progress-card{
+        background:#FFFFFF;
+        border:1px solid #E5E7EB;
+        border-radius:16px;
+        padding:18px;
+        margin-bottom:18px;
+        box-shadow:0 6px 16px rgba(15,23,42,.06);
+    }
+
+    .progress-header{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:14px;
+        font-size:18px;
+        font-weight:700;
+        color:#2F3640;
+    }
+
+    .progress-percentage{
+        font-size:18px;
+        font-weight:700;
+        color:#2563EB;
+    }
+
+    .progress-track{
+        width:100%;
+        height:10px;
+        background:#E5E7EB;
+        border-radius:999px;
+        overflow:hidden;
+    }
+
+    .progress-fill{
+        height:100%;
+        background:#2563EB;
+        border-radius:999px;
+        transition:width .3s ease;
+    }
+
+    .progress-footer{
+        display:flex;
+        justify-content:space-between;
+        margin-top:12px;
+        font-size:13px;
+        color:#6B7280;
+    }
+
     </style>
     """,
         unsafe_allow_html=True,
     )
+
 
 def dashboard_card_start(title):
     st.markdown(
