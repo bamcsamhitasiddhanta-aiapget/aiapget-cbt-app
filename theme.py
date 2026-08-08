@@ -215,6 +215,83 @@ def apply_theme():
         margin-top:5px;
     }
 
+    /* ===========================================
+       QUESTION PALETTE
+    =========================================== */
+
+    .palette-title{
+        font-size:20px;
+        font-weight:700;
+        color:#2F3640;
+        margin-top:18px;
+        margin-bottom:14px;
+    }
+
+    /* Palette buttons */
+
+    div.stButton > button{
+        transition:
+            transform .15s ease,
+            box-shadow .15s ease,
+            background .15s ease;
+    }
+
+    /*
+       Palette buttons are deliberately compact.
+       This allows many questions to fit vertically.
+    */
+
+    div.stButton > button[kind="secondary"]{
+        min-height:42px;
+    }
+
+    /* ===========================================
+       PALETTE LEGEND
+    =========================================== */
+
+    .palette-legend{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:8px 12px;
+        margin-top:16px;
+        padding:12px;
+        background:#F8FAFC;
+        border:1px solid #E5E7EB;
+        border-radius:12px;
+        font-size:11px;
+        color:#4B5563;
+    }
+
+    .palette-legend > div{
+        display:flex;
+        align-items:center;
+        gap:6px;
+    }
+
+    .legend-dot{
+        width:9px;
+        height:9px;
+        border-radius:3px;
+        display:inline-block;
+        flex-shrink:0;
+    }
+
+    .legend-green{
+        background:#10B981;
+    }
+
+    .legend-orange{
+        background:#F97316;
+    }
+
+    .legend-purple{
+        background:#8B5CF6;
+    }
+
+    .legend-grey{
+        background:#D1D5DB;
+    }
+
     </style>
     """,
         unsafe_allow_html=True,
