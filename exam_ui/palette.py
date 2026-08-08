@@ -141,31 +141,27 @@ def render_palette(questions, get_question_state):
     # -------------------------------------------------
 
     st.markdown(
-        """
-        <div class="palette-legend">
+        """<div class="palette-legend">
+    <div>
+    <span class="legend-dot legend-green"></span>
+    Answered
+    </div>
 
-            <div>
-                <span class="legend-dot legend-green"></span>
-                Answered
-            </div>
+    <div>
+    <span class="legend-dot legend-orange"></span>
+    Not Answered
+    </div>
 
-            <div>
-                <span class="legend-dot legend-orange"></span>
-                Not Answered
-            </div>
+    <div>
+    <span class="legend-dot legend-purple"></span>
+    Review
+    </div>
 
-            <div>
-                <span class="legend-dot legend-purple"></span>
-                Review
-            </div>
-
-            <div>
-                <span class="legend-dot legend-grey"></span>
-                Not Visited
-            </div>
-
-        </div>
-        """,
+    <div>
+    <span class="legend-dot legend-grey"></span>
+    Not Visited
+    </div>
+    </div>""",
         unsafe_allow_html=True,
     )
 
