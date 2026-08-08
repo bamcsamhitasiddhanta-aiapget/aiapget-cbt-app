@@ -148,6 +148,73 @@ def apply_theme():
         color:#6B7280;
     }
 
+    /* ===========================================
+       QUESTION SUMMARY
+    =========================================== */
+
+    .summary-title{
+        font-size:20px;
+        font-weight:700;
+        color:#2F3640;
+        margin-top:20px;
+        margin-bottom:14px;
+    }
+
+    .summary-grid{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:10px;
+        margin-bottom:18px;
+    }
+
+    .summary-item{
+        background:#FFFFFF;
+        border:1px solid #E5E7EB;
+        border-radius:12px;
+        padding:12px;
+        min-height:72px;
+        box-sizing:border-box;
+    }
+
+    .summary-status{
+        display:flex;
+        align-items:center;
+        gap:7px;
+        font-size:12px;
+        font-weight:600;
+        color:#4B5563;
+    }
+
+    .status-dot{
+        width:10px;
+        height:10px;
+        border-radius:3px;
+        display:inline-block;
+    }
+
+    .answered-dot{
+        background:#10B981;
+    }
+
+    .not-answered-dot{
+        background:#F97316;
+    }
+
+    .review-dot{
+        background:#8B5CF6;
+    }
+
+    .not-visited-dot{
+        background:#D8BFE8;
+    }
+
+    .summary-number{
+        font-size:25px;
+        font-weight:700;
+        color:#1F2937;
+        margin-top:5px;
+    }
+
     </style>
     """,
         unsafe_allow_html=True,

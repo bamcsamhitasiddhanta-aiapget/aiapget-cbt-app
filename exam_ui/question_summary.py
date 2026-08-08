@@ -23,14 +23,52 @@ def render_question_summary(questions, get_question_state):
     not_answered = visited - answered
     not_visited = total - visited
 
-    st.subheader("📊 Question Summary")
+    st.markdown(
+        """
+        <div class="summary-title">
+            📊 Question Summary
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    c1, c2 = st.columns(2)
+    st.markdown(
+        f"""
+<div class="summary-grid">
 
-    with c1:
-        st.metric("🟩 Answered", answered)
-        st.metric("🟪 Review", review)
+<div class="summary-item answered-card">
+    <div class="summary-status">
+        <span class="status-dot answered-dot"></span>
+        Answered
+    </div>
+    <div class="summary-number">{answered}</div>
+</div>
 
-    with c2:
-        st.metric("🟧 Not Answered", not_answered)
-        st.metric("⬜ Not Visited", not_visited)
+<div class="summary-item not-answered-card">
+    <div class="summary-status">
+        <span class="status-dot not-answered-dot"></span>
+        Not Answered
+    </div>
+    <div class="summary-number">{not_answered}</div>
+</div>
+
+<div class="summary-item review-card">
+    <div class="summary-status">
+        <span class="status-dot review-dot"></span>
+        Review
+    </div>
+    <div class="summary-number">{review}</div>
+</div>
+
+<div class="summary-item not-visited-card">
+    <div class="summary-status">
+        <span class="status-dot not-visited-dot"></span>
+        Not Visited
+    </div>
+    <div class="summary-number">{not_visited}</div>
+</div>
+
+</div>
+        """,
+        unsafe_allow_html=True,
+    )
