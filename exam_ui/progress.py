@@ -1,24 +1,12 @@
 import streamlit as st
 
 
-def render_progress(
-    questions,
-    get_question_state,
-):
+def render_progress(stats):
     """Render the exam progress card."""
 
-    total = len(questions)
-
-    answered = 0
-
-    for q_no in range(total):
-        state = get_question_state(q_no)
-
-        if state["answer"] is not None:
-            answered += 1
-
-    progress = answered / total if total else 0
-    percentage = int(progress * 100)
+    total = stats["total"]
+    answered = stats["answered"]
+    percentage = stats["percentage"]
 
     st.markdown(
         f"""<div class="progress-card">

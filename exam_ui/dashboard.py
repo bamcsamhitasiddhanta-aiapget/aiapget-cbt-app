@@ -1,5 +1,6 @@
 import streamlit as st
 
+from exam_ui.exam_stats import calculate_exam_stats
 from exam_ui.palette import render_palette
 from exam_ui.progress import render_progress
 from exam_ui.question_summary import render_question_summary
@@ -9,6 +10,10 @@ def render_dashboard(
     questions,
     get_question_state,
 ):
+    stats = calculate_exam_stats(
+        questions,
+        get_question_state,
+    )
 
     st.markdown(
         """
@@ -34,19 +39,12 @@ def render_dashboard(
     # PROGRESS
     # =========================================
 
-    render_progress(
-        questions,
-        get_question_state,
-    )
-
+    render_progress(stats)
     # =========================================
     # SUMMARY
     # =========================================
 
-    render_question_summary(
-        questions,
-        get_question_state,
-    )
+    render_question_summary(stats)
 
     st.divider()
 
