@@ -57,7 +57,6 @@ def render_palette(questions, get_question_state):
             if cols[i].button(
                 f"{marker} {q_no + 1:02d}",
                 key=f"palette_{q_no}",
-                use_container_width=True,
             ):
                 st.session_state.current_q = q_no
                 st.rerun()
