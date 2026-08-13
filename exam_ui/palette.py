@@ -10,7 +10,10 @@ def render_palette(questions, get_question_state):
         False otherwise.
     """
 
-    st.subheader("🗂 Question Palette")
+    st.markdown(
+        '<div class="palette-title">🗂 Question Palette</div>',
+        unsafe_allow_html=True,
+    )
 
     NUM_COLS = 5
 

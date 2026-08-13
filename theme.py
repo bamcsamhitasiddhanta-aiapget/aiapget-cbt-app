@@ -77,11 +77,13 @@ def apply_theme():
     }
 
     .dashboard-title{
-        font-size:24px;
+        font-size:20px;
         font-weight:700;
         color:#2F3640;
         text-align:center;
+        margin-top:0;
         margin-bottom:10px;
+        padding-top:0;
     }
 
     .dashboard-subtitle{
@@ -220,13 +222,12 @@ def apply_theme():
     =========================================== */
 
     .palette-title{
-        font-size:20px;
+        font-size:19px;
         font-weight:700;
         color:#2F3640;
-        margin-top:18px;
-        margin-bottom:14px;
+        margin-top:0;
+        margin-bottom:10px;
     }
-
     /* Palette buttons */
 
     div.stButton > button{
