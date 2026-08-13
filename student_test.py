@@ -286,34 +286,18 @@ def show_running(
     student_email,
 ):
 
-    if st.session_state.test_state == "running":
-        pass
-        # st_autorefresh(
-        # interval=1000,
-        # key="exam_timer",
-        # )
-        # Timer
-    remaining, expired = render_timer(selected_subject)
-
-    if expired:
-        if not st.session_state.submitted:
-            submit_exam(
-                questions,
-                selected_subject,
-                student_name,
-                student_email,
-            )
-        st.stop()
-    # Main exam layout
     left_col, right_col = st.columns(
         [2.7, 1.3],
         gap="medium",
     )
 
-    with left_col:
-        # ... keep all your existing code here ...
+    # =========================================
+    # LEFT SIDE — QUESTION
+    # =========================================
 
+    with left_col:
         state = get_question_state(st.session_state.current_q)
+
         state["visited"] = True
 
         render_question(
@@ -322,6 +306,7 @@ def show_running(
         )
 
         q = questions[st.session_state.current_q]
+
         answer = render_options(
             current_q=st.session_state.current_q,
             options=q["options"],
@@ -336,7 +321,24 @@ def show_running(
             clear_answer=clear_answer,
             toggle_review=toggle_review,
         )
+
+    # =========================================
+    # RIGHT SIDE — TIMER + DASHBOARD
+    # =========================================
+
     with right_col:
+        remaining, expired = render_timer(selected_subject)
+
+        if expired:
+            if not st.session_state.submitted:
+                submit_exam(
+                    questions,
+                    selected_subject,
+                    student_name,
+                    student_email,
+                )
+            st.stop()
+
         submit = render_dashboard(
             questions,
             get_question_state,
@@ -345,7 +347,6 @@ def show_running(
         if submit:
             st.session_state.test_state = "confirm_submit"
             st.rerun()
-        return
 
 
 def show_review():
