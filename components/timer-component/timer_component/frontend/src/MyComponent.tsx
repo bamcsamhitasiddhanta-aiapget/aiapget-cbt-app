@@ -64,8 +64,8 @@ const MyComponent: FC<MyComponentProps> = ({
   return (
     <div
       style={{
-        width: "100%",
-        maxWidth: "500px",
+        width: "90%",
+        maxWidth: "360px",
         margin: "10px auto",
         padding: "18px",
         borderRadius: "14px",
