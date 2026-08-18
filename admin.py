@@ -44,9 +44,10 @@ def show_admin_dashboard():
     # -------------------------------
     # Tabs
     # -------------------------------
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(
         [
             "📥 Import Excel",
+            "📜 Import PYQ",
             "✏️ Manage Questions",
             "➕ Add Question",
             "📤 Export Questions",
@@ -180,10 +181,332 @@ def show_admin_dashboard():
                     f"✅ Imported {imported} questions | ⚠️ Skipped {skipped} duplicates"
                 )
 
+        # =====================================================
+    # TAB 2 - IMPORT PREVIOUS YEAR QUESTIONS
     # =====================================================
-    # TAB 2 - MANAGE QUESTIONS
-    # =====================================================
+
     with tab2:
+        st.subheader("📜 Import Previous Year Questions")
+
+        st.info(
+            "PYQ questions are stored separately from regular questions "
+            "and will not appear in Subject Tests, Samhita Tests, or Full Mock Tests."
+        )
+
+        uploaded_pyq = st.file_uploader(
+            "Choose PYQ Excel File",
+            type=["xlsx"],
+            key="pyq_excel_upload",
+        )
+
+        if uploaded_pyq is not None:
+            try:
+                pyq_df = pd.read_excel(uploaded_pyq)
+
+                st.success(f"Loaded {len(pyq_df)} PYQ questions")
+
+                st.dataframe(
+                    pyq_df,
+                    use_container_width=True,
+                )
+
+                # -----------------------------------------
+                # Required columns
+                # -----------------------------------------
+
+                required_columns = [
+                    "question",
+                    "option1",
+                    "option2",
+                    "option3",
+                    "option4",
+                    "answer",
+                    "subject",
+                    "paper_year",
+                    "paper_name",
+                    "paper_id",
+                    "paper_question_no",
+                ]
+
+                missing_columns = [
+                    column
+                    for column in required_columns
+                    if column not in pyq_df.columns
+                ]
+
+                if missing_columns:
+                    st.error("Missing required columns: " + ", ".join(missing_columns))
+
+                else:
+                    # -----------------------------------------
+                    # Basic validation
+                    # -----------------------------------------
+
+                    validation_errors = []
+
+                    for index, row in pyq_df.iterrows():
+                        excel_row = index + 2
+
+                        if pd.isna(row["question"]) or not str(row["question"]).strip():
+                            validation_errors.append(
+                                f"Row {excel_row}: Question is empty."
+                            )
+
+                        if pd.isna(row["paper_id"]) or not str(row["paper_id"]).strip():
+                            validation_errors.append(
+                                f"Row {excel_row}: paper_id is empty."
+                            )
+
+                        if pd.isna(row["paper_question_no"]):
+                            validation_errors.append(
+                                f"Row {excel_row}: paper_question_no is empty."
+                            )
+
+                    if validation_errors:
+                        st.error("Please correct the following errors:")
+
+                        for error in validation_errors[:20]:
+                            st.write(f"• {error}")
+
+                        if len(validation_errors) > 20:
+                            st.write(f"...and {len(validation_errors) - 20} more.")
+
+                    else:
+                        # -----------------------------------------
+                        # Import button
+                        # -----------------------------------------
+
+                        if st.button(
+                            "📜 Import PYQs to Database",
+                            use_container_width=True,
+                            key="import_pyq_button",
+                        ):
+                            conn = None
+
+                            try:
+                                conn = get_connection()
+                                cursor = conn.cursor()
+
+                                imported = 0
+                                skipped = 0
+
+                                # ---------------------------------
+                                # Process each PYQ
+                                # ---------------------------------
+
+                                for _, row in pyq_df.iterrows():
+                                    question = str(row["question"]).strip()
+
+                                    paper_id = str(row["paper_id"]).strip()
+
+                                    paper_name = str(row["paper_name"]).strip()
+
+                                    paper_year = int(row["paper_year"])
+
+                                    paper_question_no = int(row["paper_question_no"])
+
+                                    subject = str(row["subject"]).strip()
+
+                                    option1 = str(row["option1"]).strip()
+
+                                    option2 = str(row["option2"]).strip()
+
+                                    option3 = str(row["option3"]).strip()
+
+                                    option4 = str(row["option4"]).strip()
+
+                                    answer = str(row["answer"]).strip()
+
+                                    # Optional fields
+                                    explanation = ""
+
+                                    if "explanation" in pyq_df.columns and not pd.isna(
+                                        row["explanation"]
+                                    ):
+                                        explanation = str(row["explanation"]).strip()
+
+                                    image = ""
+
+                                    if "image" in pyq_df.columns and not pd.isna(
+                                        row["image"]
+                                    ):
+                                        image = str(row["image"]).strip()
+
+                                    # ---------------------------------
+                                    # Check duplicate PYQ
+                                    #
+                                    # Same question may legitimately
+                                    # occur in different years.
+                                    # ---------------------------------
+
+                                    execute(
+                                        cursor,
+                                        """
+                                        SELECT COUNT(*) AS count
+                                        FROM questions
+                                        WHERE question_source = ?
+                                        AND paper_id = ?
+                                        AND paper_question_no = ?
+                                        """,
+                                        (
+                                            "previous_year",
+                                            paper_id,
+                                            paper_question_no,
+                                        ),
+                                    )
+
+                                    exists = cursor.fetchone()["count"]
+
+                                    if exists:
+                                        skipped += 1
+                                        continue
+
+                                    # ---------------------------------
+                                    # Generate global Question UID
+                                    # ---------------------------------
+
+                                    execute(
+                                        cursor,
+                                        """
+                                        SELECT question_uid
+                                        FROM questions
+                                        WHERE question_uid IS NOT NULL
+                                        ORDER BY question_uid DESC
+                                        LIMIT 1
+                                        """,
+                                    )
+
+                                    last = cursor.fetchone()
+
+                                    if last:
+                                        next_no = int(last["question_uid"][1:]) + 1
+                                    else:
+                                        next_no = 1
+
+                                    question_uid = f"Q{next_no:06d}"
+
+                                    # ---------------------------------
+                                    # Insert PYQ
+                                    # ---------------------------------
+
+                                    execute(
+                                        cursor,
+                                        """
+                                        INSERT INTO questions
+                                        (
+                                            question_uid,
+                                            subject,
+                                            question,
+                                            option1,
+                                            option2,
+                                            option3,
+                                            option4,
+                                            answer,
+                                            explanation,
+                                            image,
+                                            question_source,
+                                            paper_id,
+                                            paper_year,
+                                            paper_name,
+                                            paper_question_no
+                                        )
+                                        VALUES
+                                        (
+                                            ?, ?, ?, ?, ?, ?, ?, ?,
+                                            ?, ?, ?, ?, ?, ?, ?
+                                        )
+                                        """,
+                                        (
+                                            question_uid,
+                                            subject,
+                                            question,
+                                            option1,
+                                            option2,
+                                            option3,
+                                            option4,
+                                            answer,
+                                            explanation,
+                                            image,
+                                            "previous_year",
+                                            paper_id,
+                                            paper_year,
+                                            paper_name,
+                                            paper_question_no,
+                                        ),
+                                    )
+
+                                    # ---------------------------------
+                                    # Import tags
+                                    # ---------------------------------
+
+                                    tags = ""
+
+                                    if (
+                                        "additional_tags" in pyq_df.columns
+                                        and not pd.isna(row["additional_tags"])
+                                    ):
+                                        tags = str(row["additional_tags"]).strip()
+
+                                    if tags:
+                                        tag_list = [
+                                            tag.strip().title()
+                                            for tag in tags.split(",")
+                                            if tag.strip()
+                                        ]
+
+                                        for tag in tag_list:
+                                            execute(
+                                                cursor,
+                                                """
+                                                INSERT INTO question_tags
+                                                (
+                                                    question_uid,
+                                                    tag_name
+                                                )
+                                                VALUES (?, ?)
+                                                ON CONFLICT
+                                                (
+                                                    question_uid,
+                                                    tag_name
+                                                )
+                                                DO NOTHING
+                                                """,
+                                                (
+                                                    question_uid,
+                                                    tag,
+                                                ),
+                                            )
+
+                                    imported += 1
+
+                                # ---------------------------------
+                                # Commit entire import
+                                # ---------------------------------
+
+                                conn.commit()
+
+                                st.success(
+                                    f"✅ Imported {imported} PYQs | "
+                                    f"⚠️ Skipped {skipped} duplicates"
+                                )
+
+                            except Exception as e:
+                                if conn is not None:
+                                    conn.rollback()
+
+                                st.error(f"❌ PYQ import failed: {e}")
+
+                            finally:
+                                if conn is not None:
+                                    conn.close()
+
+            except Exception as e:
+                st.error(f"❌ Could not read PYQ Excel file: {e}")
+
+    # =====================================================
+    # TAB 3 - MANAGE QUESTIONS
+    # =====================================================
+    with tab3:
         st.subheader("✏️ Manage Questions")
 
         conn = get_connection()
@@ -417,9 +740,9 @@ def show_admin_dashboard():
 
             conn.close()
     # =====================================================
-    # TAB 3 - ADD QUESTION
+    # TAB 4 - ADD QUESTION
     # =====================================================
-    with tab3:
+    with tab4:
         if "add_form_version" not in st.session_state:
             st.session_state.add_form_version = 0
         st.subheader("➕ Add New Question")
@@ -620,9 +943,9 @@ def show_admin_dashboard():
 
         conn.close()
     # =====================================================
-    # TAB 4 - EXPORT QUESTIONS
+    # TAB 5 - EXPORT QUESTIONS
     # =====================================================
-    with tab4:
+    with tab5:
         st.subheader("📤 Export Questions")
         conn = get_connection()
 
@@ -721,10 +1044,10 @@ def show_admin_dashboard():
         conn.close()
 
     # =====================================================
-    # TAB 5 - STUDENT PERFORMANCE
+    # TAB 6 - STUDENT PERFORMANCE
     # =====================================================
 
-    with tab5:
+    with tab6:
         st.subheader("👥 Student Performance")
 
         from exam_db import (
@@ -771,10 +1094,10 @@ def show_admin_dashboard():
                 )
 
             st.divider()
-    with tab6:
+    with tab7:
         show_admin_students()
 
-    with tab7:
+    with tab8:
         st.subheader("⚙️ System Settings")
 
         maintenance = get_maintenance_mode()
