@@ -3,12 +3,16 @@ import streamlit as st
 
 def render_palette(questions, get_question_state):
     """
-    Render the question palette and submit button.
+    Render the question palette.
 
-    Returns:
-        True if Submit Test is clicked.
-        False otherwise.
+    The palette grid is placed inside a fixed-height
+    scrollable container so large tests do not make
+    the entire dashboard excessively tall.
     """
+
+    # =========================================
+    # TITLE
+    # =========================================
 
     st.markdown(
         '<div class="palette-title">🗂 Question Palette</div>',
@@ -17,53 +21,65 @@ def render_palette(questions, get_question_state):
 
     NUM_COLS = 5
 
-    for start in range(0, len(questions), NUM_COLS):
-        cols = st.columns(NUM_COLS, gap="small")
+    # =========================================
+    # SCROLLABLE PALETTE
+    # =========================================
 
-        for i in range(NUM_COLS):
-            q_no = start + i
+    with st.container(
+        height=420,
+        border=False,
+    ):
+        for start in range(0, len(questions), NUM_COLS):
+            cols = st.columns(
+                NUM_COLS,
+                gap="small",
+            )
 
-            if q_no >= len(questions):
-                continue
+            for i in range(NUM_COLS):
+                q_no = start + i
 
-            state = get_question_state(q_no)
+                if q_no >= len(questions):
+                    continue
 
-            # -----------------------------------------
-            # Determine status
-            # -----------------------------------------
+                state = get_question_state(q_no)
 
-            if q_no == st.session_state.current_q:
-                marker = "🔵"
+                # =================================
+                # DETERMINE STATUS
+                # =================================
 
-            elif state["review"] and state["answer"] is not None:
-                marker = "🟣🟢"
+                if q_no == st.session_state.current_q:
+                    marker = "🔵"
 
-            elif state["review"]:
-                marker = "🟣"
+                elif state["review"] and state["answer"] is not None:
+                    marker = "🟣🟢"
 
-            elif state["answer"] is not None:
-                marker = "🟢"
+                elif state["review"]:
+                    marker = "🟣"
 
-            elif state.get("visited", False):
-                marker = "🟠"
+                elif state["answer"] is not None:
+                    marker = "🟢"
 
-            else:
-                marker = "⬜"
+                elif state.get("visited", False):
+                    marker = "🟠"
 
-            # -----------------------------------------
-            # Palette button
-            # -----------------------------------------
+                else:
+                    marker = "⬜"
 
-            if cols[i].button(
-                f"{marker} {q_no + 1:02d}",
-                key=f"palette_{q_no}",
-            ):
-                st.session_state.current_q = q_no
-                st.rerun()
+                # =================================
+                # PALETTE BUTTON
+                # =================================
 
-    # -----------------------------------------
-    # Legend
-    # -----------------------------------------
+                if cols[i].button(
+                    f"{marker} {q_no + 1:02d}",
+                    key=f"palette_{q_no}",
+                    use_container_width=True,
+                ):
+                    st.session_state.current_q = q_no
+                    st.rerun()
+
+    # =========================================
+    # LEGEND
+    # =========================================
 
     st.markdown("**Status**")
 
