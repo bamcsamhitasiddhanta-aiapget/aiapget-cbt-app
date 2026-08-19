@@ -176,6 +176,12 @@ elif st.session_state.student_page == "mock_tests":
 
     mock_tests.show_mock_tests()
 
+
+elif st.session_state.student_page == "previous_year_papers":
+    from pages import previous_year_papers
+
+    previous_year_papers.show_previous_year_papers()
+
 elif st.session_state.student_page == "samhita_tests":
     samhita_tests.show_samhita_tests()
 

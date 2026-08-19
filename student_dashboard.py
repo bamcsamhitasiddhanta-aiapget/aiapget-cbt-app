@@ -96,7 +96,7 @@ Practice consistently. Success in AIAPGET comes one test at a time.
             "samhita_tests",
         )
 
-    col3, col4 = st.columns(2)
+        col3, col4 = st.columns(2)
 
     with col3:
         dashboard_card(
@@ -108,6 +108,17 @@ Practice consistently. Success in AIAPGET comes one test at a time.
         )
 
     with col4:
+        dashboard_card(
+            "📜",
+            "Previous Year Papers",
+            "Practice questions from actual previous AIAPGET question papers.",
+            "Practice Previous Year Papers",
+            "previous_year_papers",
+        )
+
+    col5, col6 = st.columns(2)
+
+    with col5:
         dashboard_card(
             "📊",
             "My Results",
