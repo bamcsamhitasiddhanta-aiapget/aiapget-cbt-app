@@ -506,239 +506,774 @@ def show_admin_dashboard():
     # =====================================================
     # TAB 3 - MANAGE QUESTIONS
     # =====================================================
+
     with tab3:
         st.subheader("✏️ Manage Questions")
 
-        conn = get_connection()
-        cursor = conn.cursor()
-        # -------------------------------
-        # Load Subjects
-        # -------------------------------
-        execute(
-            cursor,
-            """
-            SELECT DISTINCT subject
-            FROM questions
-            ORDER BY subject
-        """,
+        # =================================================
+        # QUESTION TYPE
+        # =================================================
+
+        question_type = st.radio(
+            "Question Type",
+            [
+                "Regular Questions",
+                "Previous Year Questions",
+                "All Questions",
+            ],
+            horizontal=True,
+            key="manage_question_type",
         )
 
-        subjects = [row["subject"] for row in cursor.fetchall()]
+        conn = get_connection()
+        cursor = conn.cursor()
 
-        if not subjects:
-            st.warning("No subjects found in database.")
-            conn.close()
+        # =================================================
+        # BUILD FILTERS
+        # =================================================
 
-        else:
-            selected_subject = st.selectbox(
-                "Select Subject", subjects, key="manage_subject"
-            )
-
-            search_text = st.text_input("🔍 Search Question", key="manage_search")
+        if question_type == "Previous Year Questions":
+            # ---------------------------------------------
+            # Get PYQ papers
+            # ---------------------------------------------
 
             execute(
                 cursor,
                 """
-                SELECT id, question
+                SELECT DISTINCT
+                    paper_id,
+                    paper_name,
+                    paper_year
                 FROM questions
-                WHERE subject = ?
-                AND question LIKE ?
-                ORDER BY id
+                WHERE question_source = ?
+                AND paper_id IS NOT NULL
+                ORDER BY paper_year DESC, paper_name
                 """,
-                (selected_subject, f"%{search_text}%"),
+                ("previous_year",),
             )
 
-            question_rows = cursor.fetchall()
+            paper_rows = cursor.fetchall()
 
-            if not question_rows:
-                st.warning("No questions found.")
+            if not paper_rows:
+                st.info("📭 No Previous Year Questions found.")
+
+                conn.close()
 
             else:
-                question_dict = {
-                    f"{row['id']}: {row['question'][:80]}": row["id"]
-                    for row in question_rows
+                paper_options = {
+                    f"{row['paper_name']} ({row['paper_year']})": row["paper_id"]
+                    for row in paper_rows
                 }
 
-                selected = st.selectbox(
-                    "Choose Question", list(question_dict.keys()), key="manage_question"
+                selected_paper_label = st.selectbox(
+                    "📜 Select Previous Year Paper",
+                    list(paper_options.keys()),
+                    key="manage_pyq_paper",
                 )
 
-                question_id = question_dict[selected]
+                selected_paper_id = paper_options[selected_paper_label]
+
+                # ---------------------------------------------
+                # Get subjects for selected PYQ paper
+                # ---------------------------------------------
 
                 execute(
                     cursor,
                     """
-                    SELECT
-                        question_uid,
-                        question,
+                    SELECT DISTINCT subject
+                    FROM questions
+                    WHERE question_source = ?
+                    AND paper_id = ?
+                    ORDER BY subject
+                    """,
+                    (
+                        "previous_year",
+                        selected_paper_id,
+                    ),
+                )
+
+                subjects = [row["subject"] for row in cursor.fetchall()]
+
+                subject_options = ["All Subjects"] + subjects
+
+                selected_subject = st.selectbox(
+                    "📚 Subject",
+                    subject_options,
+                    key="manage_pyq_subject",
+                )
+
+                # ---------------------------------------------
+                # Get questions
+                # ---------------------------------------------
+
+                if selected_subject == "All Subjects":
+                    execute(
+                        cursor,
+                        """
+                        SELECT
+                            id,
+                            question_uid,
+                            question,
+                            paper_question_no,
+                            subject
+                        FROM questions
+                        WHERE question_source = ?
+                        AND paper_id = ?
+                        ORDER BY paper_question_no
+                        """,
+                        (
+                            "previous_year",
+                            selected_paper_id,
+                        ),
+                    )
+
+                else:
+                    execute(
+                        cursor,
+                        """
+                        SELECT
+                            id,
+                            question_uid,
+                            question,
+                            paper_question_no,
+                            subject
+                        FROM questions
+                        WHERE question_source = ?
+                        AND paper_id = ?
+                        AND subject = ?
+                        ORDER BY paper_question_no
+                        """,
+                        (
+                            "previous_year",
+                            selected_paper_id,
+                            selected_subject,
+                        ),
+                    )
+
+                question_rows = cursor.fetchall()
+
+                if not question_rows:
+                    st.warning("No questions found.")
+
+                else:
+                    question_dict = {
+                        (
+                            f"Q{row['paper_question_no']} | "
+                            f"{row['subject']} | "
+                            f"{row['question'][:80]}"
+                        ): row["id"]
+                        for row in question_rows
+                    }
+
+                    selected_question = st.selectbox(
+                        "Choose Question",
+                        list(question_dict.keys()),
+                        key="manage_pyq_question",
+                    )
+
+                    question_id = question_dict[selected_question]
+
+                    # =========================================
+                    # LOAD FULL QUESTION
+                    # =========================================
+
+                    execute(
+                        cursor,
+                        """
+                        SELECT
+                            question_uid,
+                            question,
+                            option1,
+                            option2,
+                            option3,
+                            option4,
+                            answer,
+                            explanation,
+                            image,
+                            subject,
+                            question_source,
+                            paper_id,
+                            paper_year,
+                            paper_name,
+                            paper_question_no
+                        FROM questions
+                        WHERE id = ?
+                        """,
+                        (question_id,),
+                    )
+
+                    row = cursor.fetchone()
+
+                    # =========================================
+                    # PYQ INFORMATION
+                    # =========================================
+
+                    st.info(
+                        f"""
+                        📜 **Previous Year Question**
+
+                        **Paper:** {row["paper_name"]}
+
+                        **Year:** {row["paper_year"]}
+
+                        **Original Question No.:** {row["paper_question_no"]}
+
+                        **Subject:** {row["subject"]}
+
+                        **UID:** {row["question_uid"]}
+                        """
+                    )
+
+                    st.divider()
+
+                    # =========================================
+                    # IMAGE
+                    # =========================================
+
+                    if row["image"]:
+                        if os.path.exists(row["image"]):
+                            st.image(
+                                row["image"],
+                                width=350,
+                                caption="Question Image",
+                            )
+
+                    # =========================================
+                    # QUESTION
+                    # =========================================
+
+                    question = st.text_area(
+                        "Question",
+                        value=row["question"],
+                        height=120,
+                        key=f"edit_question_{question_id}",
+                    )
+
+                    # =========================================
+                    # OPTIONS
+                    # =========================================
+
+                    option1 = st.text_input(
+                        "Option 1",
+                        value=row["option1"],
+                        key=f"edit_option1_{question_id}",
+                    )
+
+                    option2 = st.text_input(
+                        "Option 2",
+                        value=row["option2"],
+                        key=f"edit_option2_{question_id}",
+                    )
+
+                    option3 = st.text_input(
+                        "Option 3",
+                        value=row["option3"],
+                        key=f"edit_option3_{question_id}",
+                    )
+
+                    option4 = st.text_input(
+                        "Option 4",
+                        value=row["option4"],
+                        key=f"edit_option4_{question_id}",
+                    )
+
+                    options = [
                         option1,
                         option2,
                         option3,
                         option4,
-                        answer,
-                        explanation,
-                        image
-                    FROM questions
-                    WHERE id = ?
-                    """,
-                    (question_id,),
+                    ]
+
+                    if row["answer"] in options:
+                        answer_index = options.index(row["answer"])
+                    else:
+                        answer_index = 0
+
+                    answer = st.selectbox(
+                        "Correct Answer",
+                        options,
+                        index=answer_index,
+                        key=f"edit_answer_{question_id}",
+                    )
+
+                    # =========================================
+                    # EXPLANATION
+                    # =========================================
+
+                    explanation = st.text_area(
+                        "Explanation",
+                        value=row["explanation"] or "",
+                        height=100,
+                        key=f"edit_explanation_{question_id}",
+                    )
+
+                    # =========================================
+                    # TAG MANAGER
+                    # =========================================
+
+                    st.divider()
+
+                    st.subheader("🏷️ Tags")
+
+                    question_uid = row["question_uid"]
+
+                    tags = get_question_tags(question_uid)
+
+                    if tags:
+                        st.write("Current Tags:")
+
+                        for tag in tags:
+                            c1, c2 = st.columns([8, 1])
+
+                            with c1:
+                                st.write(f"✅ {tag}")
+
+                            with c2:
+                                if st.button(
+                                    "❌",
+                                    key=f"remove_{question_uid}_{tag}",
+                                ):
+                                    remove_question_tag(
+                                        question_uid,
+                                        tag,
+                                    )
+
+                                    st.rerun()
+
+                    else:
+                        st.info("No tags assigned.")
+
+                    new_tag = st.text_input(
+                        "Add New Tag",
+                        key=f"new_tag_{question_uid}",
+                    )
+
+                    if st.button(
+                        "➕ Add Tag",
+                        key=f"add_tag_{question_uid}",
+                    ):
+                        if new_tag.strip():
+                            add_question_tag(
+                                question_uid,
+                                new_tag,
+                            )
+
+                            st.success("Tag Added!")
+
+                            st.rerun()
+
+                    # =========================================
+                    # SAVE / DELETE
+                    # =========================================
+
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        if st.button(
+                            "💾 Save Changes",
+                            key=f"save_pyq_{question_id}",
+                        ):
+                            execute(
+                                cursor,
+                                """
+                                UPDATE questions
+                                SET
+                                    question = ?,
+                                    option1 = ?,
+                                    option2 = ?,
+                                    option3 = ?,
+                                    option4 = ?,
+                                    answer = ?,
+                                    explanation = ?
+                                WHERE id = ?
+                                """,
+                                (
+                                    question,
+                                    option1,
+                                    option2,
+                                    option3,
+                                    option4,
+                                    answer,
+                                    explanation,
+                                    question_id,
+                                ),
+                            )
+
+                            conn.commit()
+
+                            st.success("✅ PYQ updated successfully!")
+
+                            st.rerun()
+
+                    with col2:
+                        if st.button(
+                            "🗑️ Delete PYQ",
+                            key=f"delete_pyq_{question_id}",
+                        ):
+                            execute(
+                                cursor,
+                                """
+                                DELETE FROM questions
+                                WHERE id = ?
+                                AND question_source = ?
+                                """,
+                                (
+                                    question_id,
+                                    "previous_year",
+                                ),
+                            )
+
+                            conn.commit()
+
+                            st.success("✅ PYQ deleted successfully!")
+
+                            st.rerun()
+
+                conn.close()
+
+        # =================================================
+        # REGULAR / ALL QUESTIONS
+        # =================================================
+
+        else:
+            if question_type == "Regular Questions":
+                source_condition = """
+                    question_source = ?
+                """
+                source_params = ("regular",)
+
+            else:
+                source_condition = "1=1"
+                source_params = ()
+
+            # ---------------------------------------------
+            # Load subjects
+            # ---------------------------------------------
+
+            execute(
+                cursor,
+                f"""
+                SELECT DISTINCT subject
+                FROM questions
+                WHERE {source_condition}
+                ORDER BY subject
+                """,
+                source_params,
+            )
+
+            subjects = [row["subject"] for row in cursor.fetchall()]
+
+            if not subjects:
+                st.warning("No questions found.")
+
+                conn.close()
+
+            else:
+                selected_subject = st.selectbox(
+                    "Select Subject",
+                    subjects,
+                    key="manage_subject",
                 )
 
-                row = cursor.fetchone()
-
-                if row["image"]:
-                    if os.path.exists(row["image"]):
-                        st.image(
-                            row["image"],
-                            width=350,
-                            caption="Question Image",
-                        )
-
-                question = st.text_area(
-                    "Question",
-                    value=row["question"],
-                    height=120,
-                    key=f"edit_question_{question_id}",
+                search_text = st.text_input(
+                    "🔍 Search Question",
+                    key="manage_search",
                 )
 
-                option1 = st.text_input(
-                    "Option 1",
-                    value=row["option1"],
-                    key=f"edit_option1_{question_id}",
-                )
+                if question_type == "Regular Questions":
+                    execute(
+                        cursor,
+                        """
+                        SELECT id, question
+                        FROM questions
+                        WHERE question_source = ?
+                        AND subject = ?
+                        AND question LIKE ?
+                        ORDER BY id
+                        """,
+                        (
+                            "regular",
+                            selected_subject,
+                            f"%{search_text}%",
+                        ),
+                    )
 
-                option2 = st.text_input(
-                    "Option 2",
-                    value=row["option2"],
-                    key=f"edit_option2_{question_id}",
-                )
-
-                option3 = st.text_input(
-                    "Option 3",
-                    value=row["option3"],
-                    key=f"edit_option3_{question_id}",
-                )
-
-                option4 = st.text_input(
-                    "Option 4",
-                    value=row["option4"],
-                    key=f"edit_option4_{question_id}",
-                )
-
-                options = [
-                    option1,
-                    option2,
-                    option3,
-                    option4,
-                ]
-
-                if row["answer"] in options:
-                    index = options.index(row["answer"])
                 else:
-                    index = 0
+                    execute(
+                        cursor,
+                        """
+                        SELECT id, question
+                        FROM questions
+                        WHERE subject = ?
+                        AND question LIKE ?
+                        ORDER BY id
+                        """,
+                        (
+                            selected_subject,
+                            f"%{search_text}%",
+                        ),
+                    )
 
-                answer = st.selectbox(
-                    "Correct Answer",
-                    options,
-                    index=index,
-                    key=f"edit_answer_{question_id}",
-                )
+                question_rows = cursor.fetchall()
 
-                explanation = st.text_area(
-                    "Explanation",
-                    value=row["explanation"],
-                    height=100,
-                    key=f"edit_explanation_{question_id}",
-                )
-
-                # =====================================================
-                # TAG MANAGER
-                # =====================================================
-
-                st.divider()
-
-                st.subheader("🏷️ Tags")
-
-                question_uid = row["question_uid"]
-
-                tags = get_question_tags(question_uid)
-
-                if tags:
-                    st.write("Current Tags:")
-
-                    for tag in tags:
-                        c1, c2 = st.columns([8, 1])
-
-                        with c1:
-                            st.write(f"✅ {tag}")
-
-                        with c2:
-                            if st.button("❌", key=f"remove_{question_uid}_{tag}"):
-                                remove_question_tag(question_uid, tag)
-                                st.rerun()
+                if not question_rows:
+                    st.warning("No questions found.")
 
                 else:
-                    st.info("No tags assigned.")
+                    question_dict = {
+                        f"{row['id']}: {row['question'][:80]}": row["id"]
+                        for row in question_rows
+                    }
 
-                new_tag = st.text_input(
-                    "Add New Tag",
-                    key=f"new_tag_{question_uid}",
-                )
+                    selected = st.selectbox(
+                        "Choose Question",
+                        list(question_dict.keys()),
+                        key="manage_question",
+                    )
 
-                if st.button("➕ Add Tag", key=f"add_tag_{question_uid}"):
-                    if new_tag.strip():
-                        add_question_tag(question_uid, new_tag)
+                    question_id = question_dict[selected]
 
-                        st.success("Tag Added!")
+                    # =========================================
+                    # LOAD QUESTION
+                    # =========================================
 
-                        st.rerun()
+                    execute(
+                        cursor,
+                        """
+                        SELECT
+                            question_uid,
+                            question,
+                            option1,
+                            option2,
+                            option3,
+                            option4,
+                            answer,
+                            explanation,
+                            image,
+                            subject,
+                            question_source,
+                            paper_id,
+                            paper_year,
+                            paper_name,
+                            paper_question_no
+                        FROM questions
+                        WHERE id = ?
+                        """,
+                        (question_id,),
+                    )
 
-                col1, col2 = st.columns(2)
-                with col1:
-                    if st.button("💾 Save Changes", key="save_question"):
-                        execute(
-                            cursor,
+                    row = cursor.fetchone()
+
+                    # =========================================
+                    # SHOW PYQ INFO IF "ALL QUESTIONS"
+                    # =========================================
+
+                    if row["question_source"] == "previous_year":
+                        st.info(
+                            f"""
+                            📜 **Previous Year Question**
+
+                            **Paper:** {row["paper_name"]}
+
+                            **Year:** {row["paper_year"]}
+
+                            **Original Question No.:**
+                            {row["paper_question_no"]}
+
+                            **Paper ID:** {row["paper_id"]}
                             """
-                            UPDATE questions
-                            SET
-                                question=?,
-                                option1=?,
-                                option2=?,
-                                option3=?,
-                                option4=?,
-                                answer=?,
-                                explanation=?
-                            WHERE id=?
-                            """,
-                            (
-                                question,
-                                option1,
-                                option2,
-                                option3,
-                                option4,
-                                answer,
-                                explanation,
-                                question_id,
-                            ),
                         )
 
-                        conn.commit()
+                    # =========================================
+                    # IMAGE
+                    # =========================================
 
-                        st.success("✅ Question updated successfully!")
+                    if row["image"]:
+                        if os.path.exists(row["image"]):
+                            st.image(
+                                row["image"],
+                                width=350,
+                                caption="Question Image",
+                            )
 
-                with col2:
-                    if st.button("🗑️ Delete Question", key="delete_question"):
-                        execute(
-                            cursor, "DELETE FROM questions WHERE id=?", (question_id,)
-                        )
+                    # =========================================
+                    # QUESTION
+                    # =========================================
 
-                        conn.commit()
+                    question = st.text_area(
+                        "Question",
+                        value=row["question"],
+                        height=120,
+                        key=f"edit_question_{question_id}",
+                    )
 
-                        st.success("✅ Question deleted successfully!")
+                    option1 = st.text_input(
+                        "Option 1",
+                        value=row["option1"],
+                        key=f"edit_option1_{question_id}",
+                    )
 
-                        st.rerun()
+                    option2 = st.text_input(
+                        "Option 2",
+                        value=row["option2"],
+                        key=f"edit_option2_{question_id}",
+                    )
 
-            conn.close()
+                    option3 = st.text_input(
+                        "Option 3",
+                        value=row["option3"],
+                        key=f"edit_option3_{question_id}",
+                    )
+
+                    option4 = st.text_input(
+                        "Option 4",
+                        value=row["option4"],
+                        key=f"edit_option4_{question_id}",
+                    )
+
+                    options = [
+                        option1,
+                        option2,
+                        option3,
+                        option4,
+                    ]
+
+                    if row["answer"] in options:
+                        answer_index = options.index(row["answer"])
+                    else:
+                        answer_index = 0
+
+                    answer = st.selectbox(
+                        "Correct Answer",
+                        options,
+                        index=answer_index,
+                        key=f"edit_answer_{question_id}",
+                    )
+
+                    explanation = st.text_area(
+                        "Explanation",
+                        value=row["explanation"] or "",
+                        height=100,
+                        key=f"edit_explanation_{question_id}",
+                    )
+
+                    # =========================================
+                    # TAG MANAGER
+                    # =========================================
+
+                    st.divider()
+
+                    st.subheader("🏷️ Tags")
+
+                    question_uid = row["question_uid"]
+
+                    tags = get_question_tags(question_uid)
+
+                    if tags:
+                        st.write("Current Tags:")
+
+                        for tag in tags:
+                            c1, c2 = st.columns([8, 1])
+
+                            with c1:
+                                st.write(f"✅ {tag}")
+
+                            with c2:
+                                if st.button(
+                                    "❌",
+                                    key=f"remove_{question_uid}_{tag}",
+                                ):
+                                    remove_question_tag(
+                                        question_uid,
+                                        tag,
+                                    )
+
+                                    st.rerun()
+
+                    else:
+                        st.info("No tags assigned.")
+
+                    new_tag = st.text_input(
+                        "Add New Tag",
+                        key=f"new_tag_{question_uid}",
+                    )
+
+                    if st.button(
+                        "➕ Add Tag",
+                        key=f"add_tag_{question_id}",
+                    ):
+                        if new_tag.strip():
+                            add_question_tag(
+                                question_uid,
+                                new_tag,
+                            )
+
+                            st.success("Tag Added!")
+
+                            st.rerun()
+
+                    # =========================================
+                    # SAVE / DELETE
+                    # =========================================
+
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        if st.button(
+                            "💾 Save Changes",
+                            key=f"save_question_{question_id}",
+                        ):
+                            execute(
+                                cursor,
+                                """
+                                UPDATE questions
+                                SET
+                                    question = ?,
+                                    option1 = ?,
+                                    option2 = ?,
+                                    option3 = ?,
+                                    option4 = ?,
+                                    answer = ?,
+                                    explanation = ?
+                                WHERE id = ?
+                                """,
+                                (
+                                    question,
+                                    option1,
+                                    option2,
+                                    option3,
+                                    option4,
+                                    answer,
+                                    explanation,
+                                    question_id,
+                                ),
+                            )
+
+                            conn.commit()
+
+                            st.success("✅ Question updated successfully!")
+
+                            st.rerun()
+
+                    with col2:
+                        if st.button(
+                            "🗑️ Delete Question",
+                            key=f"delete_question_{question_id}",
+                        ):
+                            execute(
+                                cursor,
+                                "DELETE FROM questions WHERE id=?",
+                                (question_id,),
+                            )
+
+                            conn.commit()
+
+                            st.success("✅ Question deleted successfully!")
+
+                            st.rerun()
+
+                conn.close()
+
     # =====================================================
     # TAB 4 - ADD QUESTION
     # =====================================================
